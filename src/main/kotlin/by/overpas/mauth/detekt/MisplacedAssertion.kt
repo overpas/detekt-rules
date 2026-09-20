@@ -9,11 +9,11 @@ import dev.detekt.api.config
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-class IncorrectUnitTestFormat(config: Config) :
+class MisplacedAssertion(config: Config) :
     Rule(
         config,
-        "A unit test body must be separated by empty lines into an optional arrange block, " +
-            "an act block and a final assert block.",
+        "An assertion is only allowed in the final assert block of a unit test body. " +
+            "No other call is allowed in that block.",
     ) {
 
     @Configuration("short names of the annotations that mark a unit test")
@@ -27,16 +27,17 @@ class IncorrectUnitTestFormat(config: Config) :
         if (!function.isUnitTest(testAnnotations)) return
         function.testBody(assertionPrefixes)
             ?.blocks()
-            ?.formatError()
+            ?.takeIf { it.size in MIN_BLOCK_COUNT..MAX_BLOCK_COUNT }
+            ?.placementError()
             ?.let { report(Finding(Entity.atName(function), it)) }
     }
 
-    private fun List<List<KtExpression>>.formatError(): String? = when {
-        size < MIN_BLOCK_COUNT ->
-            "An act block and an assert block must be separated by an empty line."
+    private fun List<List<KtExpression>>.placementError(): String? = when {
+        last().any { !it.isAssertion(assertionPrefixes) } ->
+            "The last block must contain assertions only."
 
-        size > MAX_BLOCK_COUNT ->
-            "There must be no more than $MAX_BLOCK_COUNT blocks: arrange, act and assert."
+        dropLast(1).any { block -> block.any { it.isAssertion(assertionPrefixes) } } ->
+            "An assertion is only allowed in the last block."
 
         else -> null
     }

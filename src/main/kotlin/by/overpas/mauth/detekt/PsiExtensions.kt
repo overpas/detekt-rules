@@ -1,11 +1,16 @@
 package by.overpas.mauth.detekt
 
+import com.intellij.psi.PsiWhiteSpace
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
+import org.jetbrains.kotlin.psi.psiUtil.allChildren
+
+internal const val MIN_BLOCK_COUNT = 2
+internal const val MAX_BLOCK_COUNT = 3
 
 internal fun KtNamedFunction.isUnitTest(testAnnotations: List<String>): Boolean = annotationEntries.any {
     it.shortName?.asString() in testAnnotations
@@ -33,3 +38,37 @@ internal fun KtExpression.trailingLambdaBody(): KtBlockExpression? = outermostCa
     ?.lastOrNull()
     ?.getLambdaExpression()
     ?.bodyExpression
+
+internal fun KtNamedFunction.testBody(assertionPrefixes: List<String>): KtBlockExpression? {
+    val body = bodyBlockExpression ?: bodyExpression?.trailingLambdaBody()
+    return body?.unwrapped(assertionPrefixes)
+}
+
+internal fun KtBlockExpression.blocks(): List<List<KtExpression>> {
+    val statements = statements.toSet()
+    val blocks = mutableListOf<MutableList<KtExpression>>()
+    var separated = true
+    allChildren.forEach { child ->
+        when {
+            child is PsiWhiteSpace && child.isEmptyLine() -> {
+                separated = true
+            }
+
+            child in statements -> {
+                val statement = child as KtExpression
+                if (separated) blocks += mutableListOf(statement) else blocks.last() += statement
+                separated = false
+            }
+        }
+    }
+    return blocks
+}
+
+private fun KtBlockExpression.unwrapped(assertionPrefixes: List<String>): KtBlockExpression {
+    val inner = statements.singleOrNull()
+        ?.takeIf { !it.isAssertion(assertionPrefixes) }
+        ?.trailingLambdaBody()
+    return inner?.unwrapped(assertionPrefixes) ?: this
+}
+
+private fun PsiWhiteSpace.isEmptyLine(): Boolean = text.count { it == '\n' } > 1

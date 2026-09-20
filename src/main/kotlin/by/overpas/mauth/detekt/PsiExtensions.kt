@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.psi.psiUtil.allChildren
 internal const val MIN_BLOCK_COUNT = 2
 internal const val MAX_BLOCK_COUNT = 3
 
-internal fun KtNamedFunction.isUnitTest(testAnnotations: List<String>): Boolean = annotationEntries.any {
+internal fun KtNamedFunction.isUnitTest(testAnnotations: Set<String>): Boolean = annotationEntries.any {
     it.shortName?.asString() in testAnnotations
 }
 

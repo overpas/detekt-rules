@@ -35,12 +35,12 @@ class LinearContainsCheck(config: Config) :
     ) {
 
     @Configuration("short names of the types that do not find a value by a hash")
-    private val linearTypes: List<String> by config(
+    private val linearTypes: Set<String> by config(
         listOf("List", "MutableList", "ArrayList", "LinkedList", "Array"),
-    )
+    ) { it.toSet() }
 
     @Configuration("names of the calls that return a list or an array")
-    private val linearFactories: List<String> by config(
+    private val linearFactories: Set<String> by config(
         listOf(
             "listOf",
             "listOfNotNull",
@@ -56,11 +56,7 @@ class LinearContainsCheck(config: Config) :
             "toMutableList",
             "toTypedArray",
         ),
-    )
-
-    private val linearTypeNames: Set<String> by lazy { linearTypes.toSet() }
-
-    private val linearFactoryNames: Set<String> by lazy { linearFactories.toSet() }
+    ) { it.toSet() }
 
     override fun visitBinaryExpression(expression: KtBinaryExpression) {
         super.visitBinaryExpression(expression)
@@ -97,7 +93,7 @@ class LinearContainsCheck(config: Config) :
         else -> false
     }
 
-    private fun String?.isLinearName(): Boolean = this in linearFactoryNames || this in linearTypeNames
+    private fun String?.isLinearName(): Boolean = this in linearFactories || this in linearTypes
 
     private fun KtNameReferenceExpression.declaration(): KtCallableDeclaration? {
         val name = getReferencedName()
@@ -119,7 +115,7 @@ class LinearContainsCheck(config: Config) :
         else -> emptySequence()
     }
 
-    private fun KtCallableDeclaration.isLinear(): Boolean = typeReference?.shortTypeName() in linearTypeNames ||
+    private fun KtCallableDeclaration.isLinear(): Boolean = typeReference?.shortTypeName() in linearTypes ||
         (this as? KtProperty)?.initializer?.isLinearFactory() == true
 
     private fun KtTypeReference.shortTypeName(): String? {

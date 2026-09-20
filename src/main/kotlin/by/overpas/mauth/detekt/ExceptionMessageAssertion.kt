@@ -20,12 +20,12 @@ class ExceptionMessageAssertion(config: Config) :
     ) {
 
     @Configuration("short names of the annotations that mark a unit test")
-    private val testAnnotations: List<String> by config(listOf("Test"))
+    private val testAnnotations: Set<String> by config(listOf("Test")) { it.toSet() }
 
     @Configuration("names of the exception accessors that a unit test must not read")
-    private val exceptionAccessors: List<String> by config(
+    private val exceptionAccessors: Set<String> by config(
         listOf("message", "localizedMessage", "stackTraceToString"),
-    )
+    ) { it.toSet() }
 
     override fun visitNamedFunction(function: KtNamedFunction) {
         super.visitNamedFunction(function)

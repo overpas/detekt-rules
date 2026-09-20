@@ -17,7 +17,7 @@ class IncorrectUnitTestFormat(config: Config) :
     ) {
 
     @Configuration("short names of the annotations that mark a unit test")
-    private val testAnnotations: List<String> by config(listOf("Test"))
+    private val testAnnotations: Set<String> by config(listOf("Test")) { it.toSet() }
 
     @Configuration("name prefixes of the calls that count as an assertion")
     private val assertionPrefixes: List<String> by config(listOf("assert", "verify", "fail"))

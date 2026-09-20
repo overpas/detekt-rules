@@ -10,6 +10,6 @@ class MauthRuleSetProvider : RuleSetProvider {
 
     override fun instance() = RuleSet(
         ruleSetId,
-        listOf(::IncorrectUnitTestFormat),
+        listOf(::ComplexAssertion, ::IncorrectUnitTestFormat),
     )
 }

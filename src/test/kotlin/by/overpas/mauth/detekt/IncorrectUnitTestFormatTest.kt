@@ -5,7 +5,6 @@ import dev.detekt.test.TestConfig
 import dev.detekt.test.lint
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class IncorrectUnitTestFormatTest {
 
@@ -28,7 +27,7 @@ class IncorrectUnitTestFormatTest {
 
         val findings = rule.lint(code)
 
-        assertTrue(findings.isEmpty())
+        assertEquals(0, findings.size)
     }
 
     @Test
@@ -46,7 +45,7 @@ class IncorrectUnitTestFormatTest {
 
         val findings = rule.lint(code)
 
-        assertTrue(findings.isEmpty())
+        assertEquals(0, findings.size)
     }
 
     @Test
@@ -65,7 +64,7 @@ class IncorrectUnitTestFormatTest {
 
         val findings = rule.lint(code)
 
-        assertTrue(findings.isEmpty())
+        assertEquals(0, findings.size)
     }
 
     @Test
@@ -87,7 +86,7 @@ class IncorrectUnitTestFormatTest {
 
         val findings = rule.lint(code)
 
-        assertTrue(findings.isEmpty())
+        assertEquals(0, findings.size)
     }
 
     @Test
@@ -107,7 +106,7 @@ class IncorrectUnitTestFormatTest {
 
         val findings = rule.lint(code)
 
-        assertTrue(findings.isEmpty())
+        assertEquals(0, findings.size)
     }
 
     @Test
@@ -125,7 +124,7 @@ class IncorrectUnitTestFormatTest {
 
         val findings = rule.lint(code)
 
-        assertTrue(findings.isEmpty())
+        assertEquals(0, findings.size)
     }
 
     @Test
@@ -256,7 +255,7 @@ class IncorrectUnitTestFormatTest {
 
         val findings = rule.lint(code)
 
-        assertTrue(findings.isEmpty())
+        assertEquals(0, findings.size)
     }
 
     @Test
@@ -272,7 +271,7 @@ class IncorrectUnitTestFormatTest {
 
         val findings = rule.lint(code)
 
-        assertTrue(findings.isEmpty())
+        assertEquals(0, findings.size)
     }
 
     @Test
@@ -291,7 +290,7 @@ class IncorrectUnitTestFormatTest {
 
         val findings = configured.lint(code)
 
-        assertTrue(findings.isEmpty())
+        assertEquals(0, findings.size)
     }
 
     @Test

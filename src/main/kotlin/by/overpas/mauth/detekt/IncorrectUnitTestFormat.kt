@@ -8,10 +8,7 @@ import dev.detekt.api.Finding
 import dev.detekt.api.Rule
 import dev.detekt.api.config
 import org.jetbrains.kotlin.psi.KtBlockExpression
-import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.allChildren
 
@@ -33,15 +30,11 @@ class IncorrectUnitTestFormat(config: Config) :
 
     override fun visitNamedFunction(function: KtNamedFunction) {
         super.visitNamedFunction(function)
-        if (!function.isUnitTest()) return
+        if (!function.isUnitTest(testAnnotations)) return
         function.testBody()
             ?.blocks()
             ?.formatError()
             ?.let { report(Finding(Entity.atName(function), it)) }
-    }
-
-    private fun KtNamedFunction.isUnitTest(): Boolean = annotationEntries.any {
-        it.shortName?.asString() in testAnnotations
     }
 
     private fun KtNamedFunction.testBody(): KtBlockExpression? {
@@ -51,7 +44,7 @@ class IncorrectUnitTestFormat(config: Config) :
 
     private fun KtBlockExpression.unwrapped(): KtBlockExpression {
         val inner = statements.singleOrNull()
-            ?.takeIf { !it.isAssertion() }
+            ?.takeIf { !it.isAssertion(assertionPrefixes) }
             ?.trailingLambdaBody()
         return inner?.unwrapped() ?: this
     }
@@ -83,34 +76,14 @@ class IncorrectUnitTestFormat(config: Config) :
         size > MAX_BLOCK_COUNT ->
             "There must be no more than $MAX_BLOCK_COUNT blocks: arrange, act and assert."
 
-        last().any { !it.isAssertion() } ->
+        last().any { !it.isAssertion(assertionPrefixes) } ->
             "The last block must contain assertions only."
 
-        dropLast(1).any { block -> block.any { it.isAssertion() } } ->
+        dropLast(1).any { block -> block.any { it.isAssertion(assertionPrefixes) } } ->
             "An assertion is only allowed in the last block."
 
         else -> null
     }
-
-    private fun KtExpression.isAssertion(): Boolean {
-        val name = outermostCall()?.calleeName() ?: return false
-        return assertionPrefixes.any(name::startsWith)
-    }
 }
 
 private fun PsiWhiteSpace.isEmptyLine(): Boolean = text.count { it == '\n' } > 1
-
-private fun KtExpression.outermostCall(): KtCallExpression? = when (this) {
-    is KtCallExpression -> this
-    is KtDotQualifiedExpression -> selectorExpression?.outermostCall()
-    else -> null
-}
-
-private fun KtCallExpression.calleeName(): String? =
-    (calleeExpression as? KtNameReferenceExpression)?.getReferencedName()
-
-private fun KtExpression.trailingLambdaBody(): KtBlockExpression? = outermostCall()
-    ?.lambdaArguments
-    ?.lastOrNull()
-    ?.getLambdaExpression()
-    ?.bodyExpression

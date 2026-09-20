@@ -14,6 +14,7 @@ class MauthRuleSetProvider : RuleSetProvider {
             ::ComplexAssertion,
             ::ExceptionMessageAssertion,
             ::IncorrectUnitTestFormat,
+            ::LinearContainsCheck,
             ::MisplacedAssertion,
         ),
     )

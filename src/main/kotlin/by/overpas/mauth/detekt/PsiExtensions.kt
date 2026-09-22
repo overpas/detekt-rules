@@ -49,12 +49,12 @@ internal fun KtBlockExpression.blocks(): List<List<KtExpression>> {
     val blocks = mutableListOf<MutableList<KtExpression>>()
     var separated = true
     allChildren.forEach { child ->
-        when {
-            child is PsiWhiteSpace && child.isEmptyLine() -> {
+        when (child) {
+            is PsiWhiteSpace if child.isEmptyLine() -> {
                 separated = true
             }
 
-            child in statements -> {
+            in statements -> {
                 val statement = child as KtExpression
                 if (separated) blocks += mutableListOf(statement) else blocks.last() += statement
                 separated = false

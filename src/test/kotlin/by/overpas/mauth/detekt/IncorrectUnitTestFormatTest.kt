@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 
 class IncorrectUnitTestFormatTest {
 
-    private val rule = IncorrectUnitTestFormat(Config.empty)
+    private val sut = IncorrectUnitTestFormat(Config.empty)
 
     @Test
     fun `an arrange act assert body passes`() {
@@ -25,7 +25,7 @@ class IncorrectUnitTestFormatTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -43,7 +43,7 @@ class IncorrectUnitTestFormatTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -65,7 +65,7 @@ class IncorrectUnitTestFormatTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -85,7 +85,7 @@ class IncorrectUnitTestFormatTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -103,7 +103,7 @@ class IncorrectUnitTestFormatTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -122,7 +122,7 @@ class IncorrectUnitTestFormatTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -139,7 +139,7 @@ class IncorrectUnitTestFormatTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -157,7 +157,7 @@ class IncorrectUnitTestFormatTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -179,7 +179,7 @@ class IncorrectUnitTestFormatTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -195,14 +195,14 @@ class IncorrectUnitTestFormatTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
 
     @Test
     fun `the assertion prefixes are configurable`() {
-        val configured = IncorrectUnitTestFormat(TestConfig("assertionPrefixes" to listOf("expect")))
+        val sut = IncorrectUnitTestFormat(TestConfig("assertionPrefixes" to listOf("expect")))
         val code = """
             class T {
                 @Test
@@ -216,14 +216,14 @@ class IncorrectUnitTestFormatTest {
             }
         """.trimIndent()
 
-        val findings = configured.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
 
     @Test
     fun `the test annotations are configurable`() {
-        val configured = IncorrectUnitTestFormat(TestConfig("testAnnotations" to listOf("Scenario")))
+        val sut = IncorrectUnitTestFormat(TestConfig("testAnnotations" to listOf("Scenario")))
         val code = """
             class T {
                 @Scenario
@@ -234,7 +234,7 @@ class IncorrectUnitTestFormatTest {
             }
         """.trimIndent()
 
-        val findings = configured.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }

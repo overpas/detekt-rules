@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 
 class ExceptionMessageAssertionTest {
 
-    private val rule = ExceptionMessageAssertion(Config.empty)
+    private val sut = ExceptionMessageAssertion(Config.empty)
 
     @Test
     fun `a message read is reported`() {
@@ -24,7 +24,7 @@ class ExceptionMessageAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -42,7 +42,7 @@ class ExceptionMessageAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -61,7 +61,7 @@ class ExceptionMessageAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -81,7 +81,7 @@ class ExceptionMessageAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(2, findings.size)
     }
@@ -99,7 +99,7 @@ class ExceptionMessageAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -119,7 +119,7 @@ class ExceptionMessageAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -134,14 +134,14 @@ class ExceptionMessageAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
 
     @Test
     fun `the accessors are configurable`() {
-        val configured = ExceptionMessageAssertion(TestConfig("exceptionAccessors" to listOf("reason")))
+        val sut = ExceptionMessageAssertion(TestConfig("exceptionAccessors" to listOf("reason")))
         val code = """
             class T {
                 @Test
@@ -154,14 +154,14 @@ class ExceptionMessageAssertionTest {
             }
         """.trimIndent()
 
-        val findings = configured.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
 
     @Test
     fun `the test annotations are configurable`() {
-        val configured = ExceptionMessageAssertion(TestConfig("testAnnotations" to listOf("Scenario")))
+        val sut = ExceptionMessageAssertion(TestConfig("testAnnotations" to listOf("Scenario")))
         val code = """
             class T {
                 @Scenario
@@ -174,7 +174,7 @@ class ExceptionMessageAssertionTest {
             }
         """.trimIndent()
 
-        val findings = configured.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }

@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 
 class MisplacedAssertionTest {
 
-    private val rule = MisplacedAssertion(Config.empty)
+    private val sut = MisplacedAssertion(Config.empty)
 
     @Test
     fun `an arrange act assert body passes`() {
@@ -25,7 +25,7 @@ class MisplacedAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -44,7 +44,7 @@ class MisplacedAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -62,7 +62,7 @@ class MisplacedAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -80,7 +80,7 @@ class MisplacedAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -99,7 +99,7 @@ class MisplacedAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -118,7 +118,7 @@ class MisplacedAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -135,7 +135,7 @@ class MisplacedAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -157,7 +157,7 @@ class MisplacedAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -174,14 +174,14 @@ class MisplacedAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
 
     @Test
     fun `the assertion prefixes are configurable`() {
-        val configured = MisplacedAssertion(TestConfig("assertionPrefixes" to listOf("expect")))
+        val sut = MisplacedAssertion(TestConfig("assertionPrefixes" to listOf("expect")))
         val code = """
             class T {
                 @Test
@@ -193,14 +193,14 @@ class MisplacedAssertionTest {
             }
         """.trimIndent()
 
-        val findings = configured.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
 
     @Test
     fun `the test annotations are configurable`() {
-        val configured = MisplacedAssertion(TestConfig("testAnnotations" to listOf("Scenario")))
+        val sut = MisplacedAssertion(TestConfig("testAnnotations" to listOf("Scenario")))
         val code = """
             class T {
                 @Scenario
@@ -212,7 +212,7 @@ class MisplacedAssertionTest {
             }
         """.trimIndent()
 
-        val findings = configured.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }

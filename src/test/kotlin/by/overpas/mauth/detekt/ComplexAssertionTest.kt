@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 
 class ComplexAssertionTest {
 
-    private val rule = ComplexAssertion(Config.empty)
+    private val sut = ComplexAssertion(Config.empty)
 
     @Test
     fun `an assertion of variables passes`() {
@@ -23,7 +23,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -41,7 +41,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -59,7 +59,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -77,7 +77,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -95,7 +95,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -113,7 +113,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -131,7 +131,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -149,7 +149,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -167,7 +167,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -185,7 +185,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -203,7 +203,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -221,7 +221,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -239,7 +239,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -259,7 +259,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -277,7 +277,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -295,7 +295,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -313,7 +313,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(2, findings.size)
     }
@@ -331,7 +331,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -349,7 +349,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -369,7 +369,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -386,14 +386,14 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
 
     @Test
     fun `the assertion prefixes are configurable`() {
-        val configured = ComplexAssertion(TestConfig("assertionPrefixes" to listOf("expect")))
+        val sut = ComplexAssertion(TestConfig("assertionPrefixes" to listOf("expect")))
         val code = """
             class T {
                 @Test
@@ -405,14 +405,14 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = configured.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
 
     @Test
     fun `the test annotations are configurable`() {
-        val configured = ComplexAssertion(TestConfig("testAnnotations" to listOf("Scenario")))
+        val sut = ComplexAssertion(TestConfig("testAnnotations" to listOf("Scenario")))
         val code = """
             class T {
                 @Scenario
@@ -424,7 +424,7 @@ class ComplexAssertionTest {
             }
         """.trimIndent()
 
-        val findings = configured.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }

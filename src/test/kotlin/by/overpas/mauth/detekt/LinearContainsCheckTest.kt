@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 
 class LinearContainsCheckTest {
 
-    private val rule = LinearContainsCheck(Config.empty)
+    private val sut = LinearContainsCheck(Config.empty)
 
     @Test
     fun `a check on a list literal is reported`() {
@@ -16,7 +16,7 @@ class LinearContainsCheckTest {
             fun known(id: Int): Boolean = id in listOf(1, 2, 3)
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -27,7 +27,7 @@ class LinearContainsCheckTest {
             fun unknown(name: String, names: List<String>): Boolean = name !in names
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -42,7 +42,7 @@ class LinearContainsCheckTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -53,7 +53,7 @@ class LinearContainsCheckTest {
             fun flagged(args: Array<String>): Boolean = "--write" in args
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -67,7 +67,7 @@ class LinearContainsCheckTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -78,7 +78,7 @@ class LinearContainsCheckTest {
             fun known(id: Int, ids: Sequence<Int>): Boolean = id in ids.toList()
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -89,7 +89,7 @@ class LinearContainsCheckTest {
             fun known(id: Int, ids: List<Int>?): Boolean = ids?.contains(id) == true
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -104,7 +104,7 @@ class LinearContainsCheckTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -118,7 +118,7 @@ class LinearContainsCheckTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -131,7 +131,7 @@ class LinearContainsCheckTest {
             fun known(id: Int): Boolean = id in ids
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -145,7 +145,7 @@ class LinearContainsCheckTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
@@ -156,7 +156,7 @@ class LinearContainsCheckTest {
             fun known(id: Int, ids: List<Int>): Boolean = id in ids && ids.contains(id)
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(2, findings.size)
     }
@@ -167,7 +167,7 @@ class LinearContainsCheckTest {
             fun known(id: Int, ids: Set<Int>): Boolean = id in ids
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -178,7 +178,7 @@ class LinearContainsCheckTest {
             fun known(id: Int): Boolean = id in setOf(1, 2, 3)
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -189,7 +189,7 @@ class LinearContainsCheckTest {
             fun known(id: Int, names: Map<Int, String>): Boolean = id in names
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -203,7 +203,7 @@ class LinearContainsCheckTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -214,7 +214,7 @@ class LinearContainsCheckTest {
             fun digit(char: Char): Boolean = char in '0'..'9'
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -225,7 +225,7 @@ class LinearContainsCheckTest {
             fun valid(counter: Int): Boolean = counter !in MIN..MAX
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -236,7 +236,7 @@ class LinearContainsCheckTest {
             fun secret(text: String): Boolean = text.contains("secret")
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -247,7 +247,7 @@ class LinearContainsCheckTest {
             fun known(id: Int): Boolean = id in idsOf()
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -258,7 +258,7 @@ class LinearContainsCheckTest {
             fun known(ids: List<Int>, others: List<Int>): Boolean = ids.containsAll(others)
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -272,7 +272,7 @@ class LinearContainsCheckTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -287,7 +287,7 @@ class LinearContainsCheckTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -300,7 +300,7 @@ class LinearContainsCheckTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -316,7 +316,7 @@ class LinearContainsCheckTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -329,7 +329,7 @@ class LinearContainsCheckTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -342,7 +342,7 @@ class LinearContainsCheckTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
     }
@@ -357,31 +357,31 @@ class LinearContainsCheckTest {
             }
         """.trimIndent()
 
-        val findings = rule.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
 
     @Test
     fun `the linear types are configurable`() {
-        val configured = LinearContainsCheck(TestConfig("linearTypes" to listOf("Deque")))
+        val sut = LinearContainsCheck(TestConfig("linearTypes" to listOf("Deque")))
         val code = """
             fun known(id: Int, ids: Deque<Int>): Boolean = id in ids
         """.trimIndent()
 
-        val findings = configured.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }
 
     @Test
     fun `the linear factories are configurable`() {
-        val configured = LinearContainsCheck(TestConfig("linearFactories" to listOf("rowsOf")))
+        val sut = LinearContainsCheck(TestConfig("linearFactories" to listOf("rowsOf")))
         val code = """
             fun known(id: Int): Boolean = id in rowsOf(1, 2, 3)
         """.trimIndent()
 
-        val findings = configured.lint(code)
+        val findings = sut.lint(code)
 
         assertEquals(1, findings.size)
     }

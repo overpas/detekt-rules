@@ -59,6 +59,6 @@ class HelperFunctionInTest(config: Config) :
         .any { it.isUnitTest(testAnnotations) }
 
     private fun KtNamedFunction.reportHelper() {
-        report(Finding(Entity.atName(this), "Move the helper function `$name` out of the test file."))
+        report(Finding(Entity.atName(this), "Move the helper function `$nameAsSafeName` out of the test file."))
     }
 }

@@ -31,8 +31,7 @@ class MissingSubjectUnderTest(config: Config) :
         super.visitNamedFunction(function)
         if (!function.isUnitTest(testAnnotations)) return
         val blocks = function.testBody(assertionPrefixes)
-            ?.blocks()
-            ?.takeIf { it.size in MIN_BLOCK_COUNT..MAX_BLOCK_COUNT }
+            ?.let { body -> body.blocks().takeIf { it.size in MIN_BLOCK_COUNT..MAX_BLOCK_COUNT } }
             ?: return
         val act = blocks[blocks.size - MIN_BLOCK_COUNT]
         if (act.none { it.usesSubject() }) {

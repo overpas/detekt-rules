@@ -47,17 +47,17 @@ internal fun KtNamedFunction.testBody(assertionPrefixes: List<String>): KtBlockE
 internal fun KtBlockExpression.blocks(): List<List<KtExpression>> {
     val statements = statements.toSet()
     val blocks = mutableListOf<MutableList<KtExpression>>()
-    var separated = true
+    var isSeparated = true
     allChildren.forEach { child ->
         when (child) {
             is PsiWhiteSpace if child.isEmptyLine() -> {
-                separated = true
+                isSeparated = true
             }
 
             in statements -> {
                 val statement = child as KtExpression
-                if (separated) blocks += mutableListOf(statement) else blocks.last() += statement
-                separated = false
+                if (isSeparated) blocks += mutableListOf(statement) else blocks.last() += statement
+                isSeparated = false
             }
         }
     }

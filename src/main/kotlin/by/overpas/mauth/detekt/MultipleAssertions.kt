@@ -25,10 +25,8 @@ class MultipleAssertions(config: Config) :
         super.visitNamedFunction(function)
         if (!function.isUnitTest(testAnnotations)) return
         val assertionCount = function.testBody(assertionPrefixes)
-            ?.blocks()
-            ?.takeIf { it.size in MIN_BLOCK_COUNT..MAX_BLOCK_COUNT }
-            ?.last()
-            ?.count { it.isAssertion(assertionPrefixes) }
+            ?.let { body -> body.blocks().takeIf { it.size in MIN_BLOCK_COUNT..MAX_BLOCK_COUNT } }
+            ?.let { blocks -> blocks.last().count { it.isAssertion(assertionPrefixes) } }
             ?: return
         if (assertionCount > 1) {
             report(

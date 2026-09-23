@@ -25,11 +25,13 @@ class ReturnInComposable(config: Config) :
         if (!function.isUnitComposable()) return
         function.bodyExpression
             ?.collectDescendantsOfType<KtReturnExpression> { it.getStrictParentOfType<KtNamedFunction>() == function }
-            ?.forEach {
+            .orEmpty()
+            .forEach { returnExpression ->
                 report(
                     Finding(
-                        Entity.from(it),
-                        "Remove the return statement from the composable `${function.name}`. Use if or when instead.",
+                        Entity.from(returnExpression),
+                        "Remove the return statement from the composable `${function.nameAsSafeName}`. " +
+                            "Use if or when instead.",
                     ),
                 )
             }
@@ -38,7 +40,7 @@ class ReturnInComposable(config: Config) :
     private fun KtNamedFunction.isUnitComposable(): Boolean {
         val isComposable = annotationEntries.any { it.shortName?.asString() in composableAnnotations }
         val returnType = typeReference?.text
-        val returnsUnit = returnType == "Unit" || (returnType == null && hasBlockBody())
-        return isComposable && returnsUnit
+        val hasUnitReturnType = returnType == "Unit" || (returnType == null && hasBlockBody())
+        return isComposable && hasUnitReturnType
     }
 }

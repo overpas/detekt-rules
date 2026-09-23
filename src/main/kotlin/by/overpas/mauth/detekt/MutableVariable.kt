@@ -23,7 +23,7 @@ class MutableVariable(config: Config) :
     override fun visitProperty(property: KtProperty) {
         super.visitProperty(property)
         if (!property.isVar || property.hasModifier(KtTokens.LATEINIT_KEYWORD) || property.isInComposable()) return
-        report(Finding(Entity.from(property), "Replace the var `${property.name}` with a val."))
+        report(Finding(Entity.from(property), "Replace the var `${property.nameAsSafeName}` with a val."))
     }
 
     private fun KtProperty.isInComposable(): Boolean = parents.filterIsInstance<KtNamedFunction>().any { function ->

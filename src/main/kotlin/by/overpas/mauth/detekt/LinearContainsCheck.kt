@@ -125,7 +125,7 @@ class LinearContainsCheck(config: Config) :
     }
 
     private fun KtExpression.findingMessage(): String {
-        val container = (this as? KtNameReferenceExpression)?.getReferencedName()?.let { "`$it`" }
+        val container = (this as? KtNameReferenceExpression)?.let { "`${it.getReferencedName()}`" }
             ?: "The data structure"
         return "$container finds a value in linear time. " +
             "Convert the data structure to a Set or a Map."

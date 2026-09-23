@@ -39,6 +39,6 @@ class ExceptionMessageAssertion(config: Config) :
     private fun KtExpression.accessorName(): String? =
         (this as? KtNameReferenceExpression)?.getReferencedName() ?: outermostCall()?.calleeName()
 
-    private fun KtExpression.findingMessage(): String = "Do not read `${accessorName()}` in a unit test. " +
+    private fun KtExpression.findingMessage(): String = "Do not read `${accessorName().orEmpty()}` in a unit test. " +
         "An exception message is not a contract; assert the exception type instead."
 }

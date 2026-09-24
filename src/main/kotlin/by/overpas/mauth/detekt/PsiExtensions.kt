@@ -2,6 +2,7 @@ package by.overpas.mauth.detekt
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
+import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
@@ -18,6 +19,11 @@ internal const val MAX_BLOCK_COUNT = 3
 internal fun KtNamedFunction.isUnitTest(testAnnotations: Set<String>): Boolean =
     annotationEntries.any {
         it.shortName?.asString() in testAnnotations
+    }
+
+internal fun KtAnnotated.hasAnnotation(names: Set<String>): Boolean =
+    annotationEntries.any {
+        it.shortName?.asString() in names
     }
 
 internal fun PsiElement.isDeferredWithin(root: PsiElement): Boolean =

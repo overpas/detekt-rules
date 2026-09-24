@@ -25,6 +25,7 @@ class MauthRuleSetProvider : RuleSetProvider {
                 ::MissingSubjectUnderTest,
                 ::MultipleAssertions,
                 ::MutableVariable,
+                ::RequestFocusInComposition,
                 ::ReturnInComposable,
                 ::RunBlockingOutsideMain,
                 ::SharingInFunction,

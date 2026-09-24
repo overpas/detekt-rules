@@ -33,6 +33,7 @@ class MauthRuleSetProvider : RuleSetProvider {
                 ::ReturnInComposable,
                 ::RunBlockingOutsideMain,
                 ::SharingInFunction,
+                ::StoredCoroutineScope,
                 ::SubjectlessWhenOnOneValue,
             ),
         )

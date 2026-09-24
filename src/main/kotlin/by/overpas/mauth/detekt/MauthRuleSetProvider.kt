@@ -26,6 +26,7 @@ class MauthRuleSetProvider : RuleSetProvider {
                 ::MutableVariable,
                 ::ReturnInComposable,
                 ::RunBlockingOutsideMain,
+                ::SharingInFunction,
             ),
         )
 }

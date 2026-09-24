@@ -24,6 +24,7 @@ class MauthRuleSetProvider : RuleSetProvider {
                 ::MisplacedAssertion,
                 ::MissingSubjectUnderTest,
                 ::MultipleAssertions,
+                ::MutableCollectionInMutableState,
                 ::MutableVariable,
                 ::RequestFocusInComposition,
                 ::ReturnInComposable,

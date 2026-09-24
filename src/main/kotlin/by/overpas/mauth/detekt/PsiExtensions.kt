@@ -16,6 +16,37 @@ import org.jetbrains.kotlin.psi.psiUtil.parents
 internal const val MIN_BLOCK_COUNT = 2
 internal const val MAX_BLOCK_COUNT = 3
 
+internal val MUTABLE_COLLECTION_TYPES = listOf(
+    "MutableList",
+    "MutableSet",
+    "MutableMap",
+    "MutableCollection",
+    "ArrayList",
+    "HashSet",
+    "HashMap",
+    "LinkedHashSet",
+    "LinkedHashMap",
+)
+
+internal val MUTABLE_COLLECTION_FACTORIES = listOf(
+    "mutableListOf",
+    "mutableSetOf",
+    "mutableMapOf",
+    "arrayListOf",
+    "hashSetOf",
+    "hashMapOf",
+    "linkedSetOf",
+    "linkedMapOf",
+    "toMutableList",
+    "toMutableSet",
+    "toMutableMap",
+    "ArrayList",
+    "HashSet",
+    "HashMap",
+    "LinkedHashSet",
+    "LinkedHashMap",
+)
+
 internal fun KtNamedFunction.isUnitTest(testAnnotations: Set<String>): Boolean =
     annotationEntries.any {
         it.shortName?.asString() in testAnnotations

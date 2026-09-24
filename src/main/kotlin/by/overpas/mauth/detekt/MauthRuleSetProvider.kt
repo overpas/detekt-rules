@@ -12,6 +12,7 @@ class MauthRuleSetProvider : RuleSetProvider {
         RuleSet(
             ruleSetId,
             listOf(
+                ::AnimatedContentTargetIgnored,
                 ::ComplexAssertion,
                 ::ExceptionMessageAssertion,
                 ::ExpressionBodyOnNewLine,

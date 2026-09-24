@@ -18,6 +18,7 @@ class MauthRuleSetProvider : RuleSetProvider {
                 ::FileStructure,
                 ::HelperFunctionInTest,
                 ::IncorrectUnitTestFormat,
+                ::LaunchInInitializer,
                 ::LinearContainsCheck,
                 ::MisplacedAssertion,
                 ::MissingSubjectUnderTest,

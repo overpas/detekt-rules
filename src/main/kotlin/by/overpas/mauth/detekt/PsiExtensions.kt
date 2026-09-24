@@ -1,13 +1,16 @@
 package by.overpas.mauth.detekt
 
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
 import org.jetbrains.kotlin.psi.psiUtil.allChildren
+import org.jetbrains.kotlin.psi.psiUtil.parents
 
 internal const val MIN_BLOCK_COUNT = 2
 internal const val MAX_BLOCK_COUNT = 3
@@ -16,6 +19,11 @@ internal fun KtNamedFunction.isUnitTest(testAnnotations: Set<String>): Boolean =
     annotationEntries.any {
         it.shortName?.asString() in testAnnotations
     }
+
+internal fun PsiElement.isDeferredWithin(root: PsiElement): Boolean =
+    parents
+        .takeWhile { it != root }
+        .any { it is KtFunction }
 
 internal fun KtCallExpression.isAssertion(assertionPrefixes: List<String>): Boolean {
     val name = calleeName() ?: return false

@@ -109,47 +109,52 @@ class FileStructure(config: Config) :
         }
     }
 
-    private fun topLevelSlot(declaration: KtDeclaration): Int? = when {
-        declaration is KtProperty && declaration.hasModifier(KtTokens.CONST_KEYWORD) -> 0
-        declaration is KtProperty && declaration.isExtensionDeclaration() -> 4
-        declaration is KtProperty || declaration is KtTypeAlias -> 1
-        declaration.isInterfaceDeclaration() -> 2
-        declaration is KtClassOrObject -> 3
-        declaration is KtNamedFunction -> 4
-        else -> null
-    }
+    private fun topLevelSlot(declaration: KtDeclaration): Int? =
+        when {
+            declaration is KtProperty && declaration.hasModifier(KtTokens.CONST_KEYWORD) -> 0
+            declaration is KtProperty && declaration.isExtensionDeclaration() -> 4
+            declaration is KtProperty || declaration is KtTypeAlias -> 1
+            declaration.isInterfaceDeclaration() -> 2
+            declaration is KtClassOrObject -> 3
+            declaration is KtNamedFunction -> 4
+            else -> null
+        }
 
-    private fun classSlot(declaration: KtDeclaration): Int? = when {
-        declaration is KtEnumEntry -> 0
-        declaration is KtProperty && declaration.hasModifier(KtTokens.PRIVATE_KEYWORD) -> 1
-        declaration is KtProperty -> 2
-        declaration is KtAnonymousInitializer || declaration is KtSecondaryConstructor -> 3
-        declaration is KtNamedFunction -> 4
-        declaration is KtObjectDeclaration && declaration.isCompanion() -> 5
-        declaration.isInterfaceDeclaration() -> 6
-        declaration is KtClassOrObject -> 7
-        else -> null
-    }
+    private fun classSlot(declaration: KtDeclaration): Int? =
+        when {
+            declaration is KtEnumEntry -> 0
+            declaration is KtProperty && declaration.hasModifier(KtTokens.PRIVATE_KEYWORD) -> 1
+            declaration is KtProperty -> 2
+            declaration is KtAnonymousInitializer || declaration is KtSecondaryConstructor -> 3
+            declaration is KtNamedFunction -> 4
+            declaration is KtObjectDeclaration && declaration.isCompanion() -> 5
+            declaration.isInterfaceDeclaration() -> 6
+            declaration is KtClassOrObject -> 7
+            else -> null
+        }
 
-    private fun interfaceSlot(declaration: KtDeclaration): Int? = when {
-        declaration is KtProperty -> 0
-        declaration is KtNamedFunction -> 1
-        declaration is KtObjectDeclaration && declaration.isCompanion() -> 2
-        declaration.isInterfaceDeclaration() -> 3
-        declaration is KtClassOrObject -> 4
-        else -> null
-    }
+    private fun interfaceSlot(declaration: KtDeclaration): Int? =
+        when {
+            declaration is KtProperty -> 0
+            declaration is KtNamedFunction -> 1
+            declaration is KtObjectDeclaration && declaration.isCompanion() -> 2
+            declaration.isInterfaceDeclaration() -> 3
+            declaration is KtClassOrObject -> 4
+            else -> null
+        }
 
-    private fun KtDeclaration.isInterfaceDeclaration(): Boolean = this is KtClass && isInterface()
+    private fun KtDeclaration.isInterfaceDeclaration(): Boolean =
+        this is KtClass && isInterface()
 
     private fun KtDeclaration.isCountedClass(): Boolean =
         this is KtClassOrObject && !isInterfaceDeclaration() && !(this is KtClass && isAnnotation())
 
-    private fun KtDeclaration.displayName(): String = when (this) {
-        is KtAnonymousInitializer -> "init"
-        is KtSecondaryConstructor -> "constructor"
-        is KtObjectDeclaration if isCompanion() -> name ?: "Companion"
-        is KtNamedDeclaration -> name ?: "<anonymous>"
-        else -> text.lineSequence().first()
-    }
+    private fun KtDeclaration.displayName(): String =
+        when (this) {
+            is KtAnonymousInitializer -> "init"
+            is KtSecondaryConstructor -> "constructor"
+            is KtObjectDeclaration if isCompanion() -> name ?: "Companion"
+            is KtNamedDeclaration -> name ?: "<anonymous>"
+            else -> text.lineSequence().first()
+        }
 }

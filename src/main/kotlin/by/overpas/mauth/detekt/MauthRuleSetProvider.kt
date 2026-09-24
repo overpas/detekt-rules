@@ -8,20 +8,22 @@ class MauthRuleSetProvider : RuleSetProvider {
 
     override val ruleSetId = RuleSetId("mauth")
 
-    override fun instance() = RuleSet(
-        ruleSetId,
-        listOf(
-            ::ComplexAssertion,
-            ::ExceptionMessageAssertion,
-            ::FileStructure,
-            ::HelperFunctionInTest,
-            ::IncorrectUnitTestFormat,
-            ::LinearContainsCheck,
-            ::MisplacedAssertion,
-            ::MissingSubjectUnderTest,
-            ::MultipleAssertions,
-            ::MutableVariable,
-            ::ReturnInComposable,
-        ),
-    )
+    override fun instance() =
+        RuleSet(
+            ruleSetId,
+            listOf(
+                ::ComplexAssertion,
+                ::ExceptionMessageAssertion,
+                ::ExpressionBodyOnNewLine,
+                ::FileStructure,
+                ::HelperFunctionInTest,
+                ::IncorrectUnitTestFormat,
+                ::LinearContainsCheck,
+                ::MisplacedAssertion,
+                ::MissingSubjectUnderTest,
+                ::MultipleAssertions,
+                ::MutableVariable,
+                ::ReturnInComposable,
+            ),
+        )
 }

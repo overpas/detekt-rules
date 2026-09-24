@@ -46,11 +46,12 @@ class ComplexAssertion(config: Config) :
         return arguments + listOfNotNull(receiver)
     }
 
-    private fun PsiElement.embeddedCalls(): List<KtExpression> = when {
-        this is KtLambdaExpression -> emptyList()
-        this is KtExpression && isForbiddenCall() -> listOf(this)
-        else -> children.flatMap { it.embeddedCalls() }
-    }
+    private fun PsiElement.embeddedCalls(): List<KtExpression> =
+        when {
+            this is KtLambdaExpression -> emptyList()
+            this is KtExpression && isForbiddenCall() -> listOf(this)
+            else -> children.flatMap { it.embeddedCalls() }
+        }
 
     private fun KtExpression.isForbiddenCall(): Boolean {
         val call = outermostCall() ?: return false

@@ -26,7 +26,8 @@ class MutableVariable(config: Config) :
         report(Finding(Entity.from(property), "Replace the var `${property.nameAsSafeName}` with a val."))
     }
 
-    private fun KtProperty.isInComposable(): Boolean = parents.filterIsInstance<KtNamedFunction>().any { function ->
-        function.annotationEntries.any { it.shortName?.asString() in composableAnnotations }
-    }
+    private fun KtProperty.isInComposable(): Boolean =
+        parents.filterIsInstance<KtNamedFunction>().any { function ->
+            function.annotationEntries.any { it.shortName?.asString() in composableAnnotations }
+        }
 }

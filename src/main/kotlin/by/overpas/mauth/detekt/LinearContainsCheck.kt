@@ -81,19 +81,22 @@ class LinearContainsCheck(config: Config) :
         if (isLinearContainer()) report(Finding(Entity.from(this), findingMessage()))
     }
 
-    private fun KtExpression.isLinearContainer(): Boolean = when (this) {
-        is KtNameReferenceExpression -> declaration()?.isLinear() == true
-        is KtQualifiedExpression -> selectorExpression?.isLinearContainer() == true
-        else -> isLinearFactory()
-    }
+    private fun KtExpression.isLinearContainer(): Boolean =
+        when (this) {
+            is KtNameReferenceExpression -> declaration()?.isLinear() == true
+            is KtQualifiedExpression -> selectorExpression?.isLinearContainer() == true
+            else -> isLinearFactory()
+        }
 
-    private fun KtExpression.isLinearFactory(): Boolean = when (this) {
-        is KtCallExpression -> calleeName().isLinearName()
-        is KtQualifiedExpression -> selectorExpression?.isLinearFactory() == true
-        else -> false
-    }
+    private fun KtExpression.isLinearFactory(): Boolean =
+        when (this) {
+            is KtCallExpression -> calleeName().isLinearName()
+            is KtQualifiedExpression -> selectorExpression?.isLinearFactory() == true
+            else -> false
+        }
 
-    private fun String?.isLinearName(): Boolean = this in linearFactories || this in linearTypes
+    private fun String?.isLinearName(): Boolean =
+        this in linearFactories || this in linearTypes
 
     private fun KtNameReferenceExpression.declaration(): KtCallableDeclaration? {
         val name = getReferencedName()
@@ -102,21 +105,23 @@ class LinearContainsCheck(config: Config) :
             .firstOrNull { it.name == name }
     }
 
-    private fun PsiElement.declarationsInScope(): Sequence<KtCallableDeclaration> = when (this) {
-        is KtBlockExpression -> statements.asSequence().filterIsInstance<KtProperty>()
+    private fun PsiElement.declarationsInScope(): Sequence<KtCallableDeclaration> =
+        when (this) {
+            is KtBlockExpression -> statements.asSequence().filterIsInstance<KtProperty>()
 
-        is KtFunction -> valueParameters.asSequence()
+            is KtFunction -> valueParameters.asSequence()
 
-        is KtClassOrObject -> primaryConstructor?.valueParameters.orEmpty().asSequence() +
-            declarations.asSequence().filterIsInstance<KtProperty>()
+            is KtClassOrObject -> primaryConstructor?.valueParameters.orEmpty().asSequence() +
+                declarations.asSequence().filterIsInstance<KtProperty>()
 
-        is KtFile -> declarations.asSequence().filterIsInstance<KtProperty>()
+            is KtFile -> declarations.asSequence().filterIsInstance<KtProperty>()
 
-        else -> emptySequence()
-    }
+            else -> emptySequence()
+        }
 
-    private fun KtCallableDeclaration.isLinear(): Boolean = typeReference?.shortTypeName() in linearTypes ||
-        (this as? KtProperty)?.initializer?.isLinearFactory() == true
+    private fun KtCallableDeclaration.isLinear(): Boolean =
+        typeReference?.shortTypeName() in linearTypes ||
+            (this as? KtProperty)?.initializer?.isLinearFactory() == true
 
     private fun KtTypeReference.shortTypeName(): String? {
         val element = typeElement

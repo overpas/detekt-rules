@@ -39,8 +39,9 @@ class MissingSubjectUnderTest(config: Config) :
         }
     }
 
-    private fun KtExpression.usesSubject(): Boolean = isSubject() ||
-        anyDescendantOfType<KtNameReferenceExpression> { it.isSubject() }
+    private fun KtExpression.usesSubject(): Boolean =
+        isSubject() ||
+            anyDescendantOfType<KtNameReferenceExpression> { it.isSubject() }
 
     private fun KtExpression.isSubject(): Boolean =
         this is KtNameReferenceExpression && getReferencedName() == subjectName

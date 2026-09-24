@@ -31,13 +31,14 @@ class IncorrectUnitTestFormat(config: Config) :
             ?.let { report(Finding(Entity.atName(function), it)) }
     }
 
-    private fun List<List<KtExpression>>.formatError(): String? = when {
-        size < MIN_BLOCK_COUNT ->
-            "An act block and an assert block must be separated by an empty line."
+    private fun List<List<KtExpression>>.formatError(): String? =
+        when {
+            size < MIN_BLOCK_COUNT ->
+                "An act block and an assert block must be separated by an empty line."
 
-        size > MAX_BLOCK_COUNT ->
-            "There must be no more than $MAX_BLOCK_COUNT blocks: arrange, act and assert."
+            size > MAX_BLOCK_COUNT ->
+                "There must be no more than $MAX_BLOCK_COUNT blocks: arrange, act and assert."
 
-        else -> null
-    }
+            else -> null
+        }
 }

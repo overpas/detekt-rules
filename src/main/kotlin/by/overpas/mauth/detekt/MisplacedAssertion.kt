@@ -32,13 +32,14 @@ class MisplacedAssertion(config: Config) :
             ?.let { report(Finding(Entity.atName(function), it)) }
     }
 
-    private fun List<List<KtExpression>>.placementError(): String? = when {
-        last().any { !it.isAssertion(assertionPrefixes) } ->
-            "The last block must contain assertions only."
+    private fun List<List<KtExpression>>.placementError(): String? =
+        when {
+            last().any { !it.isAssertion(assertionPrefixes) } ->
+                "The last block must contain assertions only."
 
-        dropLast(1).any { block -> block.any { it.isAssertion(assertionPrefixes) } } ->
-            "An assertion is only allowed in the last block."
+            dropLast(1).any { block -> block.any { it.isAssertion(assertionPrefixes) } } ->
+                "An assertion is only allowed in the last block."
 
-        else -> null
-    }
+            else -> null
+        }
 }

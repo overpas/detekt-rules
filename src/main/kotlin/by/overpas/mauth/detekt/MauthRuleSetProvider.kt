@@ -29,6 +29,7 @@ class MauthRuleSetProvider : RuleSetProvider {
                 ::MultipleAssertions,
                 ::MutableCollectionInMutableState,
                 ::MutableVariable,
+                ::PreviewInTest,
                 ::RequestFocusInComposition,
                 ::ReturnInComposable,
                 ::RunBlockingOutsideMain,

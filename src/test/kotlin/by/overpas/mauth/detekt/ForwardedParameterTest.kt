@@ -179,4 +179,67 @@ class ForwardedParameterTest {
 
         assertEquals(1, findings.size)
     }
+
+    @Test
+    fun `a parameter passed to a scope function is not reported`() {
+        val code = """
+            fun describe(user: User): String =
+                with(user) { name }
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `a parameter passed to a precondition is not reported`() {
+        val code = """
+            fun save(user: User?) {
+                requireNotNull(user)
+            }
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `a parameter passed to a contract is not reported`() {
+        val code = """
+            fun perform(block: () -> Unit) {
+                contract { callsInPlace(block) }
+                block()
+            }
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `a parameter passed to a collection function is not reported`() {
+        val code = """
+            fun pair(items: List<Item>, other: List<Item>) =
+                items.zip(other)
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `a parameter passed to a collection factory is not reported`() {
+        val code = """
+            fun wrap(user: User) =
+                listOf(user)
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
 }

@@ -51,6 +51,63 @@ class ForwardedParameter(config: Config) :
     @Configuration("short names of the annotations that mark a composable function")
     private val composableAnnotations: Set<String> by config(listOf("Composable")) { it.toSet() }
 
+    @Configuration("names of the stdlib calls that can take a parameter")
+    private val allowedCalls: Set<String> by config(
+        listOf(
+            "with",
+            "run",
+            "let",
+            "also",
+            "apply",
+            "takeIf",
+            "takeUnless",
+            "contract",
+            "callsInPlace",
+            "returns",
+            "returnsNotNull",
+            "implies",
+            "require",
+            "requireNotNull",
+            "check",
+            "checkNotNull",
+            "error",
+            "assert",
+            "listOf",
+            "listOfNotNull",
+            "mutableListOf",
+            "setOf",
+            "mutableSetOf",
+            "mapOf",
+            "mutableMapOf",
+            "arrayOf",
+            "sequenceOf",
+            "zip",
+            "plus",
+            "minus",
+            "contains",
+            "containsAll",
+            "containsKey",
+            "containsValue",
+            "indexOf",
+            "lastIndexOf",
+            "getOrElse",
+            "getOrDefault",
+            "getOrPut",
+            "union",
+            "intersect",
+            "subtract",
+            "add",
+            "addAll",
+            "remove",
+            "removeAll",
+            "retainAll",
+            "put",
+            "putAll",
+            "joinTo",
+            "toCollection",
+        ),
+    ) { it.toSet() }
+
     override fun visitNamedFunction(function: KtNamedFunction) {
         super.visitNamedFunction(function)
         if (function.isExempt()) return
@@ -60,7 +117,7 @@ class ForwardedParameter(config: Config) :
             .toSet()
         if (parameters.isEmpty()) return
         function.collectDescendantsOfType<KtCallExpression>()
-            .filterNot { it.isConstructorCall() }
+            .filterNot { it.isConstructorCall() || it.calleeName() in allowedCalls }
             .forEach { call ->
                 call.valueArguments
                     .mapNotNull { it.getArgumentExpression() as? KtNameReferenceExpression }

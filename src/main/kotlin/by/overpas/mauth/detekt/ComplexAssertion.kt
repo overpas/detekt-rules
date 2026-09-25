@@ -27,10 +27,12 @@ class ComplexAssertion(config: Config) :
     @Configuration("name prefixes of the calls that count as an assertion")
     private val assertionPrefixes: List<String> by config(listOf("assert", "verify", "fail"))
 
+    private val assertions by lazy { Assertions(assertionPrefixes) }
+
     override fun visitNamedFunction(function: KtNamedFunction) {
         super.visitNamedFunction(function)
         if (!function.isUnitTest(testAnnotations)) return
-        function.collectDescendantsOfType<KtCallExpression> { it.isAssertion(assertionPrefixes) }
+        function.collectDescendantsOfType<KtCallExpression> { assertions.isAssertion(it) }
             .flatMap { it.comparedExpressions() }
             .flatMap { it.embeddedCalls() }
             .forEach { report(Finding(Entity.from(it), it.findingMessage())) }
@@ -55,7 +57,7 @@ class ComplexAssertion(config: Config) :
 
     private fun KtExpression.isForbiddenCall(): Boolean {
         val call = outermostCall() ?: return false
-        return !call.isAssertion(assertionPrefixes)
+        return !assertions.isAssertion(call)
     }
 
     private fun KtExpression.findingMessage(): String {

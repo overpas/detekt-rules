@@ -39,7 +39,7 @@ class StoredCoroutineScope(config: Config) :
         if (classOrObject.isAllowed()) return
         classOrObject.superTypeListEntries
             .filter { it.typeReference.isScopeType() }
-            .forEach { report(it, "`${classOrObject.nameAsSafeName}` is a CoroutineScope") }
+            .forEach { it.reportScope("`${classOrObject.nameAsSafeName}` is a CoroutineScope") }
     }
 
     override fun visitParameter(parameter: KtParameter) {
@@ -47,7 +47,7 @@ class StoredCoroutineScope(config: Config) :
         val constructor = (parameter.parent as? KtParameterList)?.parent as? KtPrimaryConstructor
         val owner = constructor?.getContainingClassOrObject()
         if (owner != null && !owner.isAllowed() && parameter.typeReference.isScopeType()) {
-            report(parameter, "`${owner.nameAsSafeName}` receives the scope `${parameter.nameAsSafeName}`")
+            parameter.reportScope("`${owner.nameAsSafeName}` receives the scope `${parameter.nameAsSafeName}`")
         }
     }
 
@@ -56,7 +56,7 @@ class StoredCoroutineScope(config: Config) :
         val isStored = !property.isLocal && (property.hasInitializer() || property.hasDelegate())
         val isAllowed = property.getStrictParentOfType<KtClassOrObject>()?.isAllowed() == true
         if (isStored && !isAllowed && property.holdsScope()) {
-            report(property, "`${property.nameAsSafeName}` stores a scope")
+            property.reportScope("`${property.nameAsSafeName}` stores a scope")
         }
     }
 
@@ -83,10 +83,7 @@ class StoredCoroutineScope(config: Config) :
     private fun KtClassOrObject.isAllowed(): Boolean =
         name in allowedClasses
 
-    private fun report(
-        element: KtElement,
-        subject: String,
-    ) {
-        report(Finding(Entity.from(element), "$subject. Replace the stored scope with suspend functions."))
+    private fun KtElement.reportScope(subject: String) {
+        report(Finding(Entity.from(this), "$subject. Replace the stored scope with suspend functions."))
     }
 }

@@ -21,12 +21,14 @@ class MultipleAssertions(config: Config) :
     @Configuration("name prefixes of the calls that count as an assertion")
     private val assertionPrefixes: List<String> by config(listOf("assert", "verify", "fail"))
 
+    private val assertions by lazy { Assertions(assertionPrefixes) }
+
     override fun visitNamedFunction(function: KtNamedFunction) {
         super.visitNamedFunction(function)
         if (!function.isUnitTest(testAnnotations)) return
-        val assertionCount = function.testBody(assertionPrefixes)
+        val assertionCount = assertions.testBody(function)
             ?.let { body -> body.blocks().takeIf { it.size in MIN_BLOCK_COUNT..MAX_BLOCK_COUNT } }
-            ?.let { blocks -> blocks.last().count { it.isAssertion(assertionPrefixes) } }
+            ?.let { blocks -> blocks.last().count { assertions.isAssertion(it) } }
             ?: return
         if (assertionCount > 1) {
             report(

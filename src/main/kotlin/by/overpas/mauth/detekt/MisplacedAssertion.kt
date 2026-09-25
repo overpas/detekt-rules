@@ -22,10 +22,12 @@ class MisplacedAssertion(config: Config) :
     @Configuration("name prefixes of the calls that count as an assertion")
     private val assertionPrefixes: List<String> by config(listOf("assert", "verify", "fail"))
 
+    private val assertions by lazy { Assertions(assertionPrefixes) }
+
     override fun visitNamedFunction(function: KtNamedFunction) {
         super.visitNamedFunction(function)
         if (!function.isUnitTest(testAnnotations)) return
-        function.testBody(assertionPrefixes)
+        assertions.testBody(function)
             ?.blocks()
             ?.takeIf { it.size in MIN_BLOCK_COUNT..MAX_BLOCK_COUNT }
             ?.placementError()
@@ -34,10 +36,10 @@ class MisplacedAssertion(config: Config) :
 
     private fun List<List<KtExpression>>.placementError(): String? =
         when {
-            last().any { !it.isAssertion(assertionPrefixes) } ->
+            last().any { !assertions.isAssertion(it) } ->
                 "The last block must contain assertions only."
 
-            dropLast(1).any { block -> block.any { it.isAssertion(assertionPrefixes) } } ->
+            dropLast(1).any { block -> block.any { assertions.isAssertion(it) } } ->
                 "An assertion is only allowed in the last block."
 
             else -> null

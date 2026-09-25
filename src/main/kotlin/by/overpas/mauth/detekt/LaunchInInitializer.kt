@@ -24,35 +24,29 @@ class LaunchInInitializer(config: Config) :
 
     override fun visitAnonymousInitializer(initializer: KtAnonymousInitializer) {
         super.visitAnonymousInitializer(initializer)
-        initializer.body?.let { reportLaunches(scope = it, root = initializer) }
+        initializer.body?.let { initializer.reportLaunches(scope = it) }
     }
 
     override fun visitProperty(property: KtProperty) {
         super.visitProperty(property)
         if (property.isLocal) return
-        property.initializer?.let { reportLaunches(scope = it, root = property) }
+        property.initializer?.let { property.reportLaunches(scope = it) }
     }
 
-    private fun reportLaunches(
-        scope: PsiElement,
-        root: PsiElement,
-    ) {
+    private fun PsiElement.reportLaunches(scope: PsiElement) {
         scope
-            .collectDescendantsOfType<KtCallExpression> { !it.isDeferredWithin(root) }
+            .collectDescendantsOfType<KtCallExpression> { !it.isDeferredWithin(this) }
             .forEach { call ->
                 call.calleeName()
                     ?.takeIf { it in launchCalls }
-                    ?.let { name -> reportLaunch(call, name) }
+                    ?.let { name -> call.reportLaunch(name) }
             }
     }
 
-    private fun reportLaunch(
-        call: KtCallExpression,
-        name: String,
-    ) {
+    private fun KtCallExpression.reportLaunch(name: String) {
         report(
             Finding(
-                Entity.from(call),
+                Entity.from(this),
                 "Move `$name` out of the initializer. Launch it from an explicit start point or a lifecycle callback.",
             ),
         )

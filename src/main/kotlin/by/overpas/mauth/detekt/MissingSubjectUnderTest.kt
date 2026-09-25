@@ -24,13 +24,15 @@ class MissingSubjectUnderTest(config: Config) :
     @Configuration("name prefixes of the calls that count as an assertion")
     private val assertionPrefixes: List<String> by config(listOf("assert", "verify", "fail"))
 
+    private val assertions by lazy { Assertions(assertionPrefixes) }
+
     @Configuration("name of the subject under test")
     private val subjectName: String by config("sut")
 
     override fun visitNamedFunction(function: KtNamedFunction) {
         super.visitNamedFunction(function)
         if (!function.isUnitTest(testAnnotations)) return
-        val blocks = function.testBody(assertionPrefixes)
+        val blocks = assertions.testBody(function)
             ?.let { body -> body.blocks().takeIf { it.size in MIN_BLOCK_COUNT..MAX_BLOCK_COUNT } }
             ?: return
         val act = blocks[blocks.size - MIN_BLOCK_COUNT]

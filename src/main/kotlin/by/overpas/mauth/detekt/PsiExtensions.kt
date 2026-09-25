@@ -62,14 +62,6 @@ internal fun PsiElement.isDeferredWithin(root: PsiElement): Boolean =
         .takeWhile { it != root }
         .any { it is KtFunction }
 
-internal fun KtCallExpression.isAssertion(assertionPrefixes: List<String>): Boolean {
-    val name = calleeName() ?: return false
-    return assertionPrefixes.any(name::startsWith)
-}
-
-internal fun KtExpression.isAssertion(assertionPrefixes: List<String>): Boolean =
-    outermostCall()?.isAssertion(assertionPrefixes) == true
-
 internal fun KtExpression.outermostCall(): KtCallExpression? =
     when (this) {
         is KtCallExpression -> this
@@ -86,11 +78,6 @@ internal fun KtExpression.trailingLambdaBody(): KtBlockExpression? =
         ?.lastOrNull()
         ?.getLambdaExpression()
         ?.bodyExpression
-
-internal fun KtNamedFunction.testBody(assertionPrefixes: List<String>): KtBlockExpression? {
-    val body = bodyBlockExpression ?: bodyExpression?.trailingLambdaBody()
-    return body?.unwrapped(assertionPrefixes)
-}
 
 internal fun KtBlockExpression.blocks(): List<List<KtExpression>> {
     val statements = statements.toSet()
@@ -110,13 +97,6 @@ internal fun KtBlockExpression.blocks(): List<List<KtExpression>> {
         }
     }
     return blocks
-}
-
-private fun KtBlockExpression.unwrapped(assertionPrefixes: List<String>): KtBlockExpression {
-    val inner = statements.singleOrNull()
-        ?.takeIf { !it.isAssertion(assertionPrefixes) }
-        ?.trailingLambdaBody()
-    return inner?.unwrapped(assertionPrefixes) ?: this
 }
 
 private fun PsiWhiteSpace.isEmptyLine(): Boolean =

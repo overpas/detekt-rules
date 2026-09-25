@@ -22,10 +22,12 @@ class IncorrectUnitTestFormat(config: Config) :
     @Configuration("name prefixes of the calls that count as an assertion")
     private val assertionPrefixes: List<String> by config(listOf("assert", "verify", "fail"))
 
+    private val assertions by lazy { Assertions(assertionPrefixes) }
+
     override fun visitNamedFunction(function: KtNamedFunction) {
         super.visitNamedFunction(function)
         if (!function.isUnitTest(testAnnotations)) return
-        function.testBody(assertionPrefixes)
+        assertions.testBody(function)
             ?.blocks()
             ?.formatError()
             ?.let { report(Finding(Entity.atName(function), it)) }

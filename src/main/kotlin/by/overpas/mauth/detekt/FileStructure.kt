@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
 import org.jetbrains.kotlin.psi.KtTypeAlias
+import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.psi.psiUtil.isExtensionDeclaration
 
 private const val NESTED_CLASS = "nested class or object"
@@ -52,6 +53,7 @@ class FileStructure(config: Config) :
     Rule(
         config,
         "A file must follow the project layout: constants, properties, one interface, one class and functions. " +
+            "Many classes are allowed only when all of them extend the file interface. " +
             "Class and interface bodies must follow the member order too.",
     ) {
 
@@ -59,8 +61,18 @@ class FileStructure(config: Config) :
         super.visitKtFile(file)
         val declarations = file.declarations
         checkOrder(declarations, TOP_LEVEL_SLOTS, ::topLevelSlot)
-        reportExtra(declarations.filter { it.isInterfaceDeclaration() }, "interface")
-        reportExtra(declarations.filter { it.isCountedClass() }, "class or object")
+        reportExtra(
+            declarations.filter { it.isInterfaceDeclaration() },
+            "A file can have at most one top-level interface.",
+        )
+        val interfaceName = declarations.firstOrNull { it.isInterfaceDeclaration() }?.name
+        val classes = declarations.filterIsInstance<KtClassOrObject>().filter { it.isCountedClass() }
+        if (interfaceName == null || !classes.all { it.extends(interfaceName) }) {
+            reportExtra(
+                classes,
+                "A file can have at most one top-level class or object, unless all of them extend the file interface.",
+            )
+        }
     }
 
     override fun visitClassOrObject(classOrObject: KtClassOrObject) {
@@ -97,13 +109,13 @@ class FileStructure(config: Config) :
 
     private fun reportExtra(
         declarations: List<KtDeclaration>,
-        kind: String,
+        reason: String,
     ) {
         declarations.drop(1).forEach { declaration ->
             report(
                 Finding(
                     Entity.from(declaration),
-                    "Move `${declaration.displayName()}` to its own file. A file can have at most one top-level $kind.",
+                    "Move `${declaration.displayName()}` to its own file. $reason",
                 ),
             )
         }
@@ -148,6 +160,9 @@ class FileStructure(config: Config) :
 
     private fun KtDeclaration.isCountedClass(): Boolean =
         this is KtClassOrObject && !isInterfaceDeclaration() && !(this is KtClass && isAnnotation())
+
+    private fun KtClassOrObject.extends(name: String): Boolean =
+        superTypeListEntries.any { (it.typeReference?.typeElement as? KtUserType)?.referencedName == name }
 
     private fun KtDeclaration.displayName(): String =
         when (this) {

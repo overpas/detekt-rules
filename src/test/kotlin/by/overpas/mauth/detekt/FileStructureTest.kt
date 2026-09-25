@@ -140,6 +140,68 @@ class FileStructureTest {
     }
 
     @Test
+    fun `several classes that extend the file interface pass`() {
+        val code = """
+            sealed interface State
+
+            data object Idle : State
+
+            data class Loaded(val size: Int) : State
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `several classes that extend a generic qualified file interface pass`() {
+        val code = """
+            sealed interface Result<out T>
+
+            data class Success<T>(val value: T) : by.overpas.Result<T>
+
+            data object Failure : Result<Nothing>, java.io.Serializable
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `a class that does not extend the file interface is reported with its siblings`() {
+        val code = """
+            sealed interface State
+
+            data object Idle : State
+
+            data object Loading : State
+
+            class Box
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(2, findings.size)
+    }
+
+    @Test
+    fun `several classes that extend an interface from another file are reported`() {
+        val code = """
+            interface Container
+
+            class Box : Holder
+
+            class Bag : Holder
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
     fun `several top-level annotation classes pass`() {
         val code = """
             annotation class Main

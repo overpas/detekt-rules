@@ -25,8 +25,9 @@ import org.jetbrains.kotlin.psi.psiUtil.parents
 class ForwardedParameter(config: Config) :
     Rule(
         config,
-        "A function must not pass its own parameter to another function. " +
-            "Pass a primitive or an object that the function creates, or call the function on the parameter.",
+        "A function must not pass its own parameter to another function." +
+            "Pass a primitive or an object that the function creates, or call the function on the parameter. " +
+            "Consider refactoring with an extension function, or even removing the function.",
     ) {
 
     @Configuration("short names of the parameter types that a function can pass on")

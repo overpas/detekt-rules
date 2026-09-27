@@ -39,6 +39,7 @@ class MauthRuleSetProvider : RuleSetProvider {
                 ::SharingInFunction,
                 ::StoredCoroutineScope,
                 ::SubjectlessWhenOnOneValue,
+                ::TypeCast,
             ),
         )
 }

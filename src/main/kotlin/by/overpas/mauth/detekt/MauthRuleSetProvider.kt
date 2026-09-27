@@ -13,6 +13,7 @@ class MauthRuleSetProvider : RuleSetProvider {
             ruleSetId,
             listOf(
                 ::AnimatedContentTargetIgnored,
+                ::ApiDependency,
                 ::CallerModifierNotFirst,
                 ::ComplexAssertion,
                 ::ExceptionMessageAssertion,

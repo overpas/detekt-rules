@@ -1,7 +1,7 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
     id("code-coverage")
     id("static-analysis")
+    alias(libs.plugins.kotlin.jvm)
 }
 
 dependencies {

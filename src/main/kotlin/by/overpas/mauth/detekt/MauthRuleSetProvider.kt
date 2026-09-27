@@ -20,6 +20,7 @@ class MauthRuleSetProvider : RuleSetProvider {
                 ::FalseStabilityPromise,
                 ::FileStructure,
                 ::ForwardedParameter,
+                ::GradleDeclarationOrder,
                 ::HelperFunctionInTest,
                 ::IncorrectUnitTestFormat,
                 ::LaunchInInitializer,

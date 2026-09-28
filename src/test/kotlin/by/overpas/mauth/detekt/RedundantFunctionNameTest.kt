@@ -76,6 +76,19 @@ class RedundantFunctionNameTest {
     }
 
     @Test
+    fun `a private function passes`() {
+        val code = """
+            class UserRepository {
+                private fun getUser(id: String) = Unit
+            }
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
     fun `a companion object function passes`() {
         val code = """
             class UserRepository {

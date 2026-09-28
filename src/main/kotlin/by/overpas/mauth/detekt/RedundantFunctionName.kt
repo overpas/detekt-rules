@@ -19,9 +19,9 @@ class RedundantFunctionName(config: Config) :
     ) {
 
     @Configuration("words that a function name can repeat from the class name")
-    private val ignoredWords: List<String> by config(
+    private val ignoredWords: Set<String> by config(
         listOf("And", "At", "By", "For", "From", "In", "Of", "On", "Or", "To", "With"),
-    )
+    ) { it.toSet() }
 
     override fun visitNamedFunction(function: KtNamedFunction) {
         super.visitNamedFunction(function)
@@ -41,7 +41,7 @@ class RedundantFunctionName(config: Config) :
     private fun KtNamedFunction.checkedClassName(): String? =
         containingClassOrObject
             ?.takeUnless { it is KtObjectDeclaration && it.isCompanion() }
-            ?.takeUnless { hasModifier(KtTokens.OVERRIDE_KEYWORD) }
+            ?.takeUnless { hasModifier(KtTokens.OVERRIDE_KEYWORD) || hasModifier(KtTokens.PRIVATE_KEYWORD) }
             ?.name
 
     private fun String.subjectPhrases(): List<List<String>> {

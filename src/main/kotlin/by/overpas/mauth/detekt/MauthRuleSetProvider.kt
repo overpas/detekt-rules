@@ -35,6 +35,7 @@ class MauthRuleSetProvider : RuleSetProvider {
                 ::NonInjectedDependency,
                 ::PreviewInTest,
                 ::RedundantFunctionName,
+                ::RepeatedCollaboratorType,
                 ::RequestFocusInComposition,
                 ::ReturnInComposable,
                 ::RunBlockingOutsideMain,

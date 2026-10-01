@@ -22,7 +22,7 @@ class SharingInFunction(config: Config) :
     ) {
 
     @Configuration("names of the calls that start a sharing coroutine")
-    private val sharingCalls: Set<String> by config(listOf("stateIn", "shareIn", "stateInComponent")) { it.toSet() }
+    private val sharingCalls: Set<String> by config(listOf("stateIn", "shareIn")) { it.toSet() }
 
     override fun visitCallExpression(expression: KtCallExpression) {
         super.visitCallExpression(expression)

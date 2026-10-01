@@ -57,6 +57,7 @@ class RepeatedCollaboratorType(config: Config) :
             "kotlin.time.Instant",
             "kotlin.uuid.Uuid",
             "kotlin.coroutines.CoroutineContext",
+            "kotlinx.coroutines.CoroutineDispatcher",
         ),
     ) { names -> names.map { ClassId.topLevel(FqName(it)) }.toSet() }
 

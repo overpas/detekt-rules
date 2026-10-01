@@ -44,7 +44,6 @@ class GradleDeclarationOrder(config: Config) :
             "kotlin.test",
             "kotlinx.coroutines.test",
             "robolectric",
-            "ultron",
         ),
     )
 

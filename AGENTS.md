@@ -32,6 +32,7 @@
   you should continue working in the same branch or create a new one.
 - At the end commit all the work. Keep the branch and report its name. Do not merge it, unless the
   user asks for it.
+- Push the branch and open a PR into `develop`. Never push to `develop` or `main` directly.
 - Fixes, corrections, improvements belong in the same branch.
 
 ## Verification

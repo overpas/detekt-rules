@@ -12,7 +12,7 @@ class MultipleAssertions(config: Config) :
     Rule(
         config,
         "The final assert block of a unit test must contain exactly one assertion. " +
-            "Group related checks with one assertOn call.",
+            "Compare the result with one expected value, or group the related checks in one assertion call.",
     ) {
 
     @Configuration("short names of the annotations that mark a unit test")
@@ -35,7 +35,7 @@ class MultipleAssertions(config: Config) :
                 Finding(
                     Entity.atName(function),
                     "The last block contains $assertionCount assertions. " +
-                        "Keep one assertion, or group the checks with one assertOn call.",
+                        "Keep one assertion, or group the checks in one assertion call.",
                 ),
             )
         }

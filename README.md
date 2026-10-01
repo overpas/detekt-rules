@@ -16,12 +16,12 @@ Opinionated [detekt](https://detekt.dev) rules for Kotlin, Compose, coroutines, 
 ```shell
 ./gradlew build      # compile, test, detekt
 ./gradlew koverVerify
-./gradlew ruleJars   # collects the versioned jars into releases/<version>/
+./gradlew ruleJars   # collects the versioned jars into build/releases/<version>/
 ```
 
 ## Use in a project
 
-Copy the jars of a release from `releases/<version>/` into the project, e.g. `config/detekt/plugins/`, and add them to the detekt plugins:
+Download the jars of a release from [GitHub Releases](https://github.com/overpas/detekt-rules/releases) into the project, e.g. `config/detekt/plugins/`, and add them to the detekt plugins:
 
 ```kotlin
 dependencies {

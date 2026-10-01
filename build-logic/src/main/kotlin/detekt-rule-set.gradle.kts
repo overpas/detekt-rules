@@ -23,6 +23,8 @@ tasks.shadowJar {
     archiveBaseName = "detekt-rules-${project.name}"
     archiveClassifier = ""
     archiveVersion = project.version.toString()
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
     dependencies {
         include(project(":core"))
     }

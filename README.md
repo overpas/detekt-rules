@@ -25,7 +25,7 @@ consumer must run the same detekt version.
 ```shell
 ./gradlew build      # compile, test, detekt
 ./gradlew koverVerify
-./gradlew ruleJars   # collects the versioned jars into build/rule-jars/
+./gradlew ruleJars   # collects the versioned jars into releases/<version>/
 ```
 
 Set up the pre-commit hook once:
@@ -36,7 +36,7 @@ git config --local core.hooksPath config/git-hooks
 
 ## Use in a project
 
-Copy the jars into the project, e.g. `config/detekt/plugins/`, and add them to the detekt plugins:
+Copy the jars of a release from `releases/<version>/` into the project, e.g. `config/detekt/plugins/`, and add them to the detekt plugins:
 
 ```kotlin
 dependencies {
@@ -55,7 +55,7 @@ the old plugin classes.
 ## Versioning
 
 The project uses [Semantic Versioning 2.0.0](https://semver.org). One version applies to all jars.
-The version is set in `gradle.properties`, and the build fails if it is not a semantic version.
+The version is set in `gradle.properties`.
 
 - MAJOR: a rule or a rule set id is removed or renamed, a config option is removed or renamed, a
   default changes so that clean code starts to fail, or the detekt version changes.
@@ -64,5 +64,6 @@ The version is set in `gradle.properties`, and the build fails if it is not a se
 
 Until `1.0.0`, the API is not stable.
 
-To release: set `version` in `gradle.properties`, add an entry to `CHANGELOG.md`, commit, and tag
-the commit `v<version>`.
+To release: set `version` in `gradle.properties`, add an entry to `CHANGELOG.md`, run
+`./gradlew ruleJars`, commit the new `releases/<version>/` jars, and tag the commit `v<version>`.
+The jars are reproducible: a rebuild of the same sources gives the same bytes.

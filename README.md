@@ -1,7 +1,6 @@
 # detekt-rules
 
-Custom [detekt](https://detekt.dev) rules, split by category. Each category is one rule set and one
-self-contained jar.
+Opinionated [detekt](https://detekt.dev) rules for Kotlin, Compose, coroutines, Gradle and tests.
 
 | Module | Rule set id | Jar |
 |---|---|---|
@@ -12,21 +11,12 @@ self-contained jar.
 | `rules:style` | `overpas-style` | `detekt-rules-style-<version>.jar` |
 | `rules:testing` | `overpas-testing` | `detekt-rules-testing-<version>.jar` |
 
-`core` holds the shared PSI helpers. It is not shipped alone: each rule set jar contains a relocated
-copy, so any jar can be used without the others.
-
 ## Build
 
 ```shell
 ./gradlew build      # compile, test, detekt
 ./gradlew koverVerify
 ./gradlew ruleJars   # collects the versioned jars into releases/<version>/
-```
-
-Set up the pre-commit hook once:
-
-```shell
-git config --local core.hooksPath config/git-hooks
 ```
 
 ## Use in a project
@@ -49,9 +39,8 @@ the old plugin classes.
 
 ## Rules
 
-The tables list the rule options with their defaults. Every rule also takes the standard detekt
-options `active`, `severity`, `excludes` and `includes`. The samples show code that a rule reports
-(Fails) and code that it accepts (Passes), with the default options.
+Every rule also takes the standard detekt
+options `active`, `severity`, `excludes` and `includes`.
 
 ### `overpas-architecture`
 

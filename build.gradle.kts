@@ -32,7 +32,7 @@ kover {
 
 tasks.register<Sync>("ruleJars") {
     group = "build"
-    description = "Collects the versioned rule set jars into releases/<version>."
+    description = "Collects the versioned rule set jars into build/releases/<version>."
     from(ruleSetJars)
-    into(layout.projectDirectory.dir("releases/$version"))
+    into(layout.buildDirectory.dir("releases/$version"))
 }

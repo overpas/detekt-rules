@@ -5,6 +5,8 @@ All notable changes are documented in this file. The project uses
 
 ## Unreleased
 
+- The rule set jars are available only as assets of the GitHub releases. The repository no longer
+  has a `releases/` folder.
 - `overpas-coroutines`: `SharingInFunction` no longer treats `stateInComponent` as a sharing call by
   default. Add it to `sharingCalls` to keep the old behavior.
 - `overpas-gradle`: `GradleDeclarationOrder` no longer treats `ultron` aliases as test libraries by

@@ -31,7 +31,9 @@ jobs:
         run: .github/scripts/bump-version.sh "$BUMP"
         env:
           BUMP: ${{ inputs.bump }}
-      - run: ./gradlew check koverVerify ruleJars
+      - run: ./gradlew check koverVerify ruleJars -Pversion="$VERSION"
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
       - run: .github/scripts/publish-release.sh "$VERSION"
         env:
           VERSION: ${{ steps.version.outputs.version }}

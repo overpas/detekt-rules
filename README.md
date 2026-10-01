@@ -34,7 +34,7 @@ of each rule. `RepeatedCollaboratorType` needs type resolution, so configure it 
 type resolution tasks (see `config/detekt/detekt-type-resolution.yml`).
 
 To upgrade, delete the old jars in the same change, so that two versions are never on the plugin
-classpath. Stop the Gradle daemon (`./gradlew --stop`) after a jar change, because the daemon caches
+classpath. Stop the Gradle daemon (`./gradlew --stop`) after a jar change, because the daemon might cache
 the old plugin classes.
 
 ## Rules

@@ -74,8 +74,8 @@ object Providers {
 
 object Providers {
     @Provides
-    fun queries(driver: SqlDriver): Queries =
-        Database(driver).queries
+    fun service(settings: Settings): Service =
+        HttpClient(settings).service
 }
 ```
 
@@ -356,7 +356,7 @@ A constructor can register a callback, but it must not launch a coroutine. Launc
 Fails:
 
 ```kotlin
-class Component(scope: CoroutineScope) {
+class Presenter(scope: CoroutineScope) {
     init {
         scope.launch { load() }
     }
@@ -370,15 +370,15 @@ class Loader(scope: CoroutineScope) {
 Passes:
 
 ```kotlin
-class Component(private val scope: CoroutineScope) {
+class Presenter(private val scope: CoroutineScope) {
     fun start() {
         scope.launch { load() }
     }
 }
 
-class Component(scope: CoroutineScope, lifecycle: Lifecycle) {
+class Presenter(scope: CoroutineScope, button: Button) {
     init {
-        lifecycle.doOnCreate {
+        button.setOnClickListener {
             scope.launch { load() }
         }
     }
@@ -427,7 +427,7 @@ Each call of a function or a getter starts one more sharing coroutine. Expose st
 
 | Option | Default | Description |
 |---|---|---|
-| `sharingCalls` | `['stateIn', 'shareIn', 'stateInComponent']` | Names of the calls that start a sharing coroutine |
+| `sharingCalls` | `['stateIn', 'shareIn']` | Names of the calls that start a sharing coroutine |
 
 Fails:
 
@@ -497,11 +497,11 @@ Fails:
 
 ```kotlin
 dependencies {
-    api(libs.decompose)
+    api(libs.kotlinx.datetime)
 }
 
 dependencies {
-    commonMainApi(projects.core.otp)
+    commonMainApi(projects.core.model)
 }
 ```
 
@@ -509,16 +509,16 @@ Passes:
 
 ```kotlin
 dependencies {
-    implementation(libs.decompose)
+    implementation(libs.kotlinx.datetime)
 }
 
 kotlin {
     iosArm64().binaries.framework {
-        export(libs.decompose)
+        export(projects.core.model)
     }
     sourceSets {
         commonMain.dependencies {
-            api(libs.decompose)
+            api(projects.core.model)
         }
     }
 }
@@ -530,20 +530,20 @@ Plugins, source set dependency blocks and dependencies of a build script are sor
 
 | Option | Default | Description |
 |---|---|---|
-| `testLibraries` | `['androidx.compose.ui.test', 'androidx.espresso', 'androidx.test', 'compose.ui.test', 'detekt.test', 'junit', 'kotlin.test', 'kotlinx.coroutines.test', 'robolectric', 'ultron']` | Version catalog aliases, after `libs.`, of the libraries only tests use |
+| `testLibraries` | `['androidx.compose.ui.test', 'androidx.espresso', 'androidx.test', 'compose.ui.test', 'detekt.test', 'junit', 'kotlin.test', 'kotlinx.coroutines.test', 'robolectric']` | Version catalog aliases, after `libs.`, of the libraries only tests use |
 
 Fails:
 
 ```kotlin
 plugins {
-    alias(libs.plugins.metro)
-    id("kmp-lib")
+    alias(libs.plugins.kotlin.serialization)
+    id("library-convention")
 }
 
 dependencies {
     implementation(libs.kotlin.test)
-    implementation(libs.decompose)
-    implementation(projects.core.arch)
+    implementation(libs.kotlinx.datetime)
+    implementation(projects.core.model)
 }
 ```
 
@@ -551,13 +551,13 @@ Passes:
 
 ```kotlin
 plugins {
-    id("kmp-lib")
-    alias(libs.plugins.metro)
+    id("library-convention")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 dependencies {
-    implementation(projects.core.arch)
-    implementation(libs.decompose)
+    implementation(projects.core.model)
+    implementation(libs.kotlinx.datetime)
     implementation(libs.kotlin.test)
 }
 ```
@@ -750,8 +750,8 @@ interface UserRepository {
     fun getUsers(): List<User>
 }
 
-interface OtpEntryRepository {
-    fun getOtpEntry(id: String): OtpEntry
+interface OrderService {
+    fun cancelOrder(id: String)
 }
 ```
 
@@ -838,9 +838,9 @@ fun `a test`() {
 
 @Test
 fun `a test`() {
-    val input = sut.sanitize("5")
+    val actual = sut.parse("5")
 
-    assertEquals(CounterInput.Accepted(5L), input)
+    assertEquals(Amount(5), actual)
 }
 ```
 
@@ -849,11 +849,11 @@ Passes:
 ```kotlin
 @Test
 fun `a test`() {
-    val expected = CounterInput.Accepted(5L)
+    val expected = Amount(5)
 
-    val input = sut.sanitize("5")
+    val actual = sut.parse("5")
 
-    assertEquals(expected, input)
+    assertEquals(expected, actual)
 }
 ```
 
@@ -956,13 +956,13 @@ fun `a test`() {
 
 @Test
 fun `a test`() {
-    sut.bringToFront()
+    sut.push(1)
 
-    sut.pop()
+    sut.push(2)
 
-    val actual = sut.active()
+    val actual = sut.peek()
 
-    assertEquals(1, actual)
+    assertEquals(2, actual)
 }
 ```
 
@@ -1072,17 +1072,17 @@ fun `a test`() {
 
 @Test
 fun `a test`() {
-    val sut = Long::asByteArray
+    val sut = String::reversed
 
-    val actual = 1L.sut()
+    val actual = "abc".sut()
 
-    assertEquals(8, actual.size)
+    assertEquals("cba", actual)
 }
 ```
 
 #### `MultipleAssertions`
 
-The final assert block of a unit test must contain exactly one assertion. Group related checks with one assertOn call.
+The final assert block of a unit test must contain exactly one assertion. Compare the result with one expected value, or group the related checks in one assertion call.
 
 | Option | Default | Description |
 |---|---|---|
@@ -1106,12 +1106,21 @@ Passes:
 ```kotlin
 @Test
 fun `a test`() {
+    val expected = Point(1, 2)
+
     val actual = sut.compute()
 
-    assertOn(actual) {
-        assertEquals(1, first)
-        assertEquals(2, second)
-    }
+    assertEquals(expected, actual)
+}
+
+@Test
+fun `a test`() {
+    val actual = sut.compute()
+
+    assertAll(
+        { assertEquals(1, actual.x) },
+        { assertEquals(2, actual.y) },
+    )
 }
 ```
 
@@ -1126,8 +1135,8 @@ A preview class or function shows sample data for the IDE and can change at any 
 Fails:
 
 ```kotlin
-class OtpScreenTest {
-    private val component = PreviewOtpComponent()
+class ProfileScreenTest {
+    private val repository = PreviewProfileRepository()
     private val state = previewState()
 }
 ```
@@ -1135,7 +1144,7 @@ class OtpScreenTest {
 Passes:
 
 ```kotlin
-class OtpScreenTest {
-    private val component = FakeOtpComponent()
+class ProfileScreenTest {
+    private val repository = FakeProfileRepository()
 }
 ```

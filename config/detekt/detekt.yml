@@ -52,7 +52,7 @@ overpas-gradle:
     active: true
   GradleDeclarationOrder:
     active: true
-    testLibraries: ['androidx.compose.ui.test', 'androidx.espresso', 'androidx.test', 'compose.ui.test', 'detekt.test', 'junit', 'kotlin.test', 'kotlinx.coroutines.test', 'robolectric', 'ultron']
+    testLibraries: ['androidx.compose.ui.test', 'androidx.espresso', 'androidx.test', 'compose.ui.test', 'detekt.test', 'junit', 'kotlin.test', 'kotlinx.coroutines.test', 'robolectric']
 
 overpas-style:
   ExpressionBodyOnNewLine:

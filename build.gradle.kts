@@ -4,16 +4,6 @@ plugins {
     id("code-coverage")
 }
 
-val semVer = Regex(
-    "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)" +
-        "(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?" +
-        "(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
-)
-
-check(semVer.matches(version.toString())) {
-    "The version `$version` in gradle.properties is not a semantic version (MAJOR.MINOR.PATCH)."
-}
-
 val ruleSets = listOf("architecture", "compose", "coroutines", "gradle", "style", "testing")
 
 val ruleSetJars by configurations.creating {

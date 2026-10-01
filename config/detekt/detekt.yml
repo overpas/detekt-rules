@@ -1,0 +1,293 @@
+overpas-architecture:
+  NonInjectedDependency:
+    active: true
+    providerAnnotations: ['Provides', 'Binds']
+
+overpas-compose:
+  AnimatedContentTargetIgnored:
+    active: true
+    contentSwitchCalls: ['AnimatedContent', 'Crossfade']
+  CallerModifierNotFirst:
+    active: true
+    composableAnnotations: ['Composable']
+    modifierName: 'modifier'
+  FalseStabilityPromise:
+    active: true
+    immutableAnnotations: ['Immutable']
+    stableAnnotations: ['Stable']
+  ModifierChainWrapping:
+    active: true
+    chainStarts: ['Modifier', 'modifier']
+    minCallCount: 3
+  MutableCollectionInMutableState:
+    active: true
+    stateFactories: ['mutableStateOf']
+  RequestFocusInComposition:
+    active: true
+    composableAnnotations: ['Composable']
+    effectCalls: ['LaunchedEffect', 'DisposableEffect', 'SideEffect']
+  ReturnInComposable:
+    active: true
+    composableAnnotations: ['Composable']
+
+overpas-coroutines:
+  LaunchInInitializer:
+    active: true
+    launchCalls: ['launch', 'async', 'launchIn']
+  RunBlockingOutsideMain:
+    active: true
+    allowedFunctions: ['main']
+  SharingInFunction:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+    sharingCalls: ['stateIn', 'shareIn']
+  StoredCoroutineScope:
+    active: true
+    scopeTypes: ['CoroutineScope']
+    scopeFactories: ['CoroutineScope', 'MainScope']
+    allowedClasses: ['InstanceScope', 'DispatchingHandlerExecutor']
+
+overpas-gradle:
+  ApiDependency:
+    active: true
+  GradleDeclarationOrder:
+    active: true
+    testLibraries: ['androidx.compose.ui.test', 'androidx.espresso', 'androidx.test', 'compose.ui.test', 'detekt.test', 'junit', 'kotlin.test', 'kotlinx.coroutines.test', 'robolectric', 'ultron']
+
+overpas-style:
+  ExpressionBodyOnNewLine:
+    active: true
+  FileStructure:
+    active: true
+  ForwardedParameter:
+    active: true
+    severity: 'warning'
+    allowedTypes: ['Int', 'Long', 'Short', 'Byte', 'Float', 'Double', 'Boolean', 'Char', 'String', 'UInt', 'ULong', 'UShort', 'UByte']
+    composableAnnotations: ['Composable']
+    allowedCalls: ['with', 'run', 'let', 'also', 'apply', 'takeIf', 'takeUnless', 'contract', 'callsInPlace', 'returns', 'returnsNotNull', 'implies', 'require', 'requireNotNull', 'check', 'checkNotNull', 'error', 'assert', 'listOf', 'listOfNotNull', 'mutableListOf', 'setOf', 'mutableSetOf', 'mapOf', 'mutableMapOf', 'arrayOf', 'sequenceOf', 'zip', 'plus', 'minus', 'contains', 'containsAll', 'containsKey', 'containsValue', 'indexOf', 'lastIndexOf', 'getOrElse', 'getOrDefault', 'getOrPut', 'union', 'intersect', 'subtract', 'add', 'addAll', 'remove', 'removeAll', 'retainAll', 'put', 'putAll', 'joinTo', 'toCollection']
+  LinearContainsCheck:
+    active: true
+    severity: 'warning'
+    linearTypes: ['List', 'MutableList', 'ArrayList', 'LinkedList', 'Array']
+    linearFactories: ['listOf', 'listOfNotNull', 'mutableListOf', 'arrayListOf', 'emptyList', 'buildList', 'arrayOf', 'emptyArray', 'arrayOfNulls', 'asList', 'toList', 'toMutableList', 'toTypedArray']
+  MutableVariable:
+    active: true
+    severity: 'warning'
+    composableAnnotations: ['Composable']
+  RedundantFunctionName:
+    active: true
+    ignoredWords: ['And', 'At', 'By', 'For', 'From', 'In', 'Of', 'On', 'Or', 'To', 'With']
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+  SubjectlessWhenOnOneValue:
+    active: true
+  TypeCast:
+    active: false
+    severity: 'warning'
+
+overpas-testing:
+  ComplexAssertion:
+    active: true
+    excludes: ['**/androidTest/**', '**/androidDeviceTest/**', '**/androidInstrumentedTest/**', '**/uiTest/**', '**/ui-test/**']
+    testAnnotations: ['Test']
+    assertionPrefixes: ['assert', 'verify', 'fail']
+  ExceptionMessageAssertion:
+    active: true
+    excludes: ['**/androidTest/**', '**/androidDeviceTest/**', '**/androidInstrumentedTest/**', '**/uiTest/**', '**/ui-test/**']
+    testAnnotations: ['Test']
+    exceptionAccessors: ['message', 'localizedMessage', 'stackTraceToString']
+  HelperFunctionInTest:
+    active: true
+    testAnnotations: ['Test']
+    lifecycleAnnotations: ['Test', 'BeforeTest', 'AfterTest', 'Before', 'After', 'BeforeClass', 'AfterClass', 'BeforeEach', 'AfterEach', 'BeforeAll', 'AfterAll']
+  IncorrectUnitTestFormat:
+    active: true
+    excludes: ['**/androidTest/**', '**/androidDeviceTest/**', '**/androidInstrumentedTest/**', '**/uiTest/**', '**/ui-test/**']
+    testAnnotations: ['Test']
+    assertionPrefixes: ['assert', 'verify', 'fail']
+  MisplacedAssertion:
+    active: true
+    excludes: ['**/androidTest/**', '**/androidDeviceTest/**', '**/androidInstrumentedTest/**', '**/uiTest/**', '**/ui-test/**']
+    testAnnotations: ['Test']
+    assertionPrefixes: ['assert', 'verify', 'fail']
+  MissingSubjectUnderTest:
+    active: true
+    excludes: ['**/androidTest/**', '**/androidDeviceTest/**', '**/androidInstrumentedTest/**', '**/uiTest/**', '**/ui-test/**']
+    testAnnotations: ['Test']
+    assertionPrefixes: ['assert', 'verify', 'fail']
+    subjectName: 'sut'
+  MultipleAssertions:
+    active: true
+    excludes: ['**/androidTest/**', '**/androidDeviceTest/**', '**/androidInstrumentedTest/**', '**/uiTest/**', '**/ui-test/**']
+    testAnnotations: ['Test']
+    assertionPrefixes: ['assert', 'verify', 'fail']
+  PreviewInTest:
+    active: false
+    includes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
+    namePattern: '[Pp]review'
+
+comments:
+  AbsentOrWrongFileLicense:
+    active: true
+  DeprecatedBlockTag:
+    active: true
+  DocumentationOverPrivateFunction:
+    active: true
+  DocumentationOverPrivateProperty:
+    active: true
+  EndOfSentenceFormat:
+    active: true
+  KDocReferencesNonPublicProperty:
+    active: true
+  OutdatedDocumentation:
+    active: true
+  UndocumentedPublicClass:
+    active: false
+  UndocumentedPublicFunction:
+    active: false
+  UndocumentedPublicProperty:
+    active: false
+
+complexity:
+  CognitiveComplexMethod:
+    active: true
+  ComplexInterface:
+    active: true
+    excludes: ['**/di/**']
+  LabeledExpression:
+    active: true
+  LargeClass:
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+  LongMethod:
+    allowedLines: 100
+    ignoreAnnotated: ['Test']
+  MethodOverloading:
+    active: true
+  StringLiteralDuplication:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+  TooManyFunctions:
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+    allowedFunctionsPerFile: 15
+    allowedFunctionsPerClass: 15
+    allowedFunctionsPerInterface: 15
+    allowedFunctionsPerObject: 15
+    allowedFunctionsPerEnum: 15
+
+coroutines:
+  GlobalCoroutineUsage:
+    active: true
+
+exceptions:
+  NotImplementedDeclaration:
+    active: true
+  ThrowingExceptionInMain:
+    active: true
+
+naming:
+  ForbiddenClassName:
+    active: true
+  FunctionNameMaxLength:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+  FunctionNameMinLength:
+    active: true
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+  LambdaParameterNaming:
+    active: true
+  VariableMaxLength:
+    active: true
+  VariableMinLength:
+    active: true
+
+performance:
+  UnnecessaryInitOnArray:
+    active: true
+  UnnecessaryPartOfBinaryExpression:
+    active: true
+  UnnecessaryTypeCasting:
+    active: true
+
+potential-bugs:
+  LateinitUsage:
+    active: false
+  MissingPackageDeclaration:
+    active: true
+  UnconditionalJumpStatementInLoop:
+    active: true
+
+style:
+  AlsoCouldBeApply:
+    active: true
+  BracesOnIfStatements:
+    active: true
+  BracesOnWhenStatements:
+    active: true
+  CascadingCallWrapping:
+    active: true
+  ClassOrdering:
+    active: false
+  CollapsibleIfStatements:
+    active: true
+  DataClassContainsFunctions:
+    active: true
+  DataClassShouldBeImmutable:
+    active: true
+  DoubleNegativeLambda:
+    active: true
+  EqualsOnSignatureLine:
+    active: true
+  ExpressionBodySyntax:
+    active: true
+  ForbiddenImport:
+    active: true
+  ForbiddenSuppress:
+    active: true
+  MagicNumber:
+    active: false
+  MandatoryBracesLoops:
+    active: true
+  MultilineRawStringIndentation:
+    active: true
+  NoTabs:
+    active: true
+  RangeUntilInsteadOfRangeTo:
+    active: true
+  RedundantConstructorKeyword:
+    active: true
+  RedundantVisibilityModifier:
+    active: true
+  SpacingAfterPackageAndImports:
+    active: true
+  StringShouldBeRawString:
+    active: true
+  TrailingWhitespace:
+    active: true
+  TrimMultilineRawString:
+    active: true
+  UnderscoresInNumericLiterals:
+    active: true
+  UnnecessaryBackticks:
+    active: true
+  UnnecessaryParentheses:
+    active: false
+  UseIfInsteadOfWhen:
+    active: true
+  UseLet:
+    active: true
+
+ktlint:
+  ClassSignature:
+    forceMultilineWhenParameterCountGreaterOrEqualThan: '2'
+  Filename:
+    active: false
+  FunctionSignature:
+    excludes: ['**/SafeCoroutineExecutorScope.kt']
+    forceMultilineWhenParameterCountGreaterOrEqualThan: 2
+    functionBodyExpressionWrapping: 'always'
+  Indentation:
+    excludes: ['**/SafeCoroutineExecutorScope.kt']
+  MaximumLineLength:
+    active: false
+  TypeParameterListSpacing:
+    excludes: ['**/SafeCoroutineExecutorScope.kt']

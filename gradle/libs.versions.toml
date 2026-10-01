@@ -1,0 +1,17 @@
+[versions]
+detekt = "2.0.0-alpha.6"
+kotlin = "2.4.10"
+kover = "0.9.9"
+shadow = "9.6.1"
+
+[libraries]
+detekt-api = { module = "dev.detekt:detekt-api", version.ref = "detekt" }
+detekt-ktlint-wrapper = { module = "dev.detekt:detekt-rules-ktlint-wrapper", version.ref = "detekt" }
+detekt-test = { module = "dev.detekt:detekt-test", version.ref = "detekt" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+
+[plugins]
+detekt = { id = "dev.detekt", version.ref = "detekt" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }

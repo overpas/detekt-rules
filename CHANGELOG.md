@@ -3,6 +3,16 @@
 All notable changes are documented in this file. The project uses
 [Semantic Versioning](https://semver.org).
 
+## 0.2.0
+
+### Added rules
+
+- `overpas-compose`: `LowLevelUiPrimitive` reports imports and fully qualified names of low-level
+  UI primitives in UI code: colors, typography, dimensions, shapes, drawing, custom layouts and
+  animation specs. Use design system components and tokens instead. Set `forbiddenImports` and
+  `allowedImports` to change the list of primitives, and the standard `includes` option to check
+  only feature code.
+
 ## 0.1.1
 
 ### Changed options and defaults

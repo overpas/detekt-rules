@@ -14,8 +14,8 @@
   Obey "Git".
 - Don't leave any files unstaged and uncommitted. Either stage and commit or add to `.gitignore` if
   it makes sense.
-- After a release, invoke the `release-changelog` skill. The release workflow publishes only PR
-  titles as the release body.
+- To release a version, invoke the `release` skill. It writes the changelog, merges `develop` into
+  `main`, runs the release workflow and replaces the PR titles in the release body.
 
 ### Don't
 

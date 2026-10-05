@@ -15,6 +15,31 @@ overpas-compose:
     active: true
     immutableAnnotations: ['Immutable']
     stableAnnotations: ['Stable']
+  LowLevelUiPrimitive:
+    active: true
+    forbiddenImports:
+      - 'androidx.compose.ui.graphics.*'
+      - 'androidx.compose.ui.draw.*'
+      - 'androidx.compose.foundation.Canvas'
+      - 'androidx.compose.foundation.background'
+      - 'androidx.compose.foundation.border'
+      - 'androidx.compose.foundation.shape.*'
+      - 'androidx.compose.ui.text.TextStyle'
+      - 'androidx.compose.ui.text.font.*'
+      - 'androidx.compose.ui.text.style.*'
+      - 'androidx.compose.ui.unit.dp'
+      - 'androidx.compose.ui.unit.sp'
+      - 'androidx.compose.ui.unit.em'
+      - 'androidx.compose.ui.layout.*'
+      - 'androidx.compose.animation.core.*'
+      - 'androidx.compose.animation.fade*'
+      - 'androidx.compose.animation.slide*'
+      - 'androidx.compose.animation.expand*'
+      - 'androidx.compose.animation.shrink*'
+      - 'androidx.compose.animation.scale*'
+    allowedImports:
+      - 'androidx.compose.ui.graphics.vector.ImageVector'
+      - 'androidx.compose.ui.graphics.painter.Painter'
   ModifierChainWrapping:
     active: true
     chainStarts: ['Modifier', 'modifier']

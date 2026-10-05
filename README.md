@@ -229,22 +229,30 @@ Fails:
 
 ```kotlin
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun Title(text: String) {
-    Text(text = text, color = Color.Red, modifier = Modifier.padding(16.dp))
+    Text(
+        text = text,
+        style = TextStyle(fontSize = 24.sp, color = Color.Red),
+    )
 }
 ```
 
 Passes:
 
 ```kotlin
-import com.example.design.Dimens
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 
 @Composable
 fun Title(text: String) {
-    TitleText(text = text, modifier = Modifier.padding(Dimens.medium))
+    Text(
+        text = text,
+        style = MaterialTheme.typography.headlineMedium,
+    )
 }
 ```
 

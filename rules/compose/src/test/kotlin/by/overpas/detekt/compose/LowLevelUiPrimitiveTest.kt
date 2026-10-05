@@ -83,6 +83,25 @@ class LowLevelUiPrimitiveTest {
     }
 
     @Test
+    fun `a text style from the theme passes`() {
+        val code = """
+            import androidx.compose.material3.MaterialTheme
+            import androidx.compose.material3.Text
+
+            fun Title(text: String) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.headlineMedium,
+                )
+            }
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
     fun `an allowed import from a forbidden package passes`() {
         val code = """
             import androidx.compose.ui.graphics.vector.ImageVector

@@ -1,6 +1,7 @@
 ---
 name: release-changelog
 description: Writes the changelog of a released version into the changelog file and into the GitHub release body. Invoke after a release workflow run, when the user asks to write or fix the changelog or the release notes of a version, or when a release body lists only PR titles.
+allowed-tools: Bash(gh release view:*), Bash(gh release edit:*)
 ---
 
 # Release changelog

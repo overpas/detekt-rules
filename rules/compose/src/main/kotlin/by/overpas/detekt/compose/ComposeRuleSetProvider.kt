@@ -15,6 +15,7 @@ class ComposeRuleSetProvider : RuleSetProvider {
                 ::AnimatedContentTargetIgnored,
                 ::CallerModifierNotFirst,
                 ::FalseStabilityPromise,
+                ::LowLevelUiPrimitive,
                 ::ModifierChainWrapping,
                 ::MutableCollectionInMutableState,
                 ::RequestFocusInComposition,

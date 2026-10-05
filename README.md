@@ -214,6 +214,48 @@ class State {
 }
 ```
 
+#### `LowLevelUiPrimitive`
+
+UI code combines design system components and does not build their look from low-level primitives: colors, typography, dimensions, shapes, drawing, custom layouts or animation specs. Put the look in the design system.
+
+The rule checks imports and fully qualified names in code. To check only the UI of features, set the standard `includes` option, e.g. `includes: ['**/feature/**']`.
+
+| Option | Default | Description |
+|---|---|---|
+| `forbiddenImports` | `['androidx.compose.ui.graphics.*', 'androidx.compose.ui.draw.*', 'androidx.compose.foundation.Canvas', 'androidx.compose.foundation.background', 'androidx.compose.foundation.border', 'androidx.compose.foundation.shape.*', 'androidx.compose.ui.text.TextStyle', 'androidx.compose.ui.text.font.*', 'androidx.compose.ui.text.style.*', 'androidx.compose.ui.unit.dp', 'androidx.compose.ui.unit.sp', 'androidx.compose.ui.unit.em', 'androidx.compose.ui.layout.*', 'androidx.compose.animation.core.*', 'androidx.compose.animation.fade*', 'androidx.compose.animation.slide*', 'androidx.compose.animation.expand*', 'androidx.compose.animation.shrink*', 'androidx.compose.animation.scale*']` | Patterns of the fully qualified names that are low-level UI primitives, `*` matches any characters |
+| `allowedImports` | `['androidx.compose.ui.graphics.vector.ImageVector', 'androidx.compose.ui.graphics.painter.Painter']` | Patterns of the fully qualified names that are allowed although they match `forbiddenImports` |
+
+Fails:
+
+```kotlin
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.sp
+
+@Composable
+fun Title(text: String) {
+    Text(
+        text = text,
+        style = TextStyle(fontSize = 24.sp, color = Color.Red),
+    )
+}
+```
+
+Passes:
+
+```kotlin
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+
+@Composable
+fun Title(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.headlineMedium,
+    )
+}
+```
+
 #### `ModifierChainWrapping`
 
 A long modifier chain on one line is hard to scan. Put each call of the chain on a new line.

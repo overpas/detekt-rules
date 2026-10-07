@@ -3,6 +3,15 @@
 All notable changes are documented in this file. The project uses
 [Semantic Versioning](https://semver.org).
 
+## 0.3.0
+
+### Added rules
+
+- `overpas-architecture`: `HiddenAbstraction` reports a class, an interface, an object or the top
+  level of a file that has more helper functions than entry points. Put the helpers behind a new
+  abstraction, or move them to the types that they use. The rule needs type resolution, so configure
+  it in the config of the type resolution tasks.
+
 ## 0.2.0
 
 ### Added rules

@@ -35,20 +35,23 @@ class SubjectlessWhenOnOneValue(config: Config) :
         return branches
             .asSequence()
             .flatMap { it.conditions.asSequence() }
-            .map { it.subjectText() }
+            .map { BranchCondition(it).subjectText() }
             .distinct()
             .singleOrNull()
     }
 
-    private fun KtWhenCondition.subjectText(): String? {
-        val expression = (this as? KtWhenConditionWithExpression)?.expression
-        return expression?.testedExpression()?.text
-    }
+    private class BranchCondition(private val condition: KtWhenCondition) {
 
-    private fun KtExpression.testedExpression(): KtExpression? =
-        when (this) {
-            is KtIsExpression -> leftHandSide
-            is KtBinaryExpression -> left?.takeIf { operationToken in SUBJECT_OPERATIONS }
-            else -> null
+        fun subjectText(): String? {
+            val expression = (condition as? KtWhenConditionWithExpression)?.expression
+            return expression?.testedExpression()?.text
         }
+
+        private fun KtExpression.testedExpression(): KtExpression? =
+            when (this) {
+                is KtIsExpression -> leftHandSide
+                is KtBinaryExpression -> left?.takeIf { operationToken in SUBJECT_OPERATIONS }
+                else -> null
+            }
+    }
 }

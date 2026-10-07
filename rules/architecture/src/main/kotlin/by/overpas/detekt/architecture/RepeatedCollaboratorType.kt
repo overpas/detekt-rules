@@ -95,50 +95,63 @@ class RepeatedCollaboratorType(config: Config) :
     }
 
     private fun KaSession.repeatedCollaborators(parameters: List<KtParameter>): Map<String, List<KtParameter>> {
+        val types = CollaboratorTypes(this, excludedTypes, ignoredSupertypes)
         val collaborators = parameters.mapNotNull { parameter ->
-            collaboratorType(parameter)?.let { parameter to it }
+            types.typeOf(parameter)?.let { parameter to it }
         }
         return collaborators
             .groupBy(
-                keySelector = { (_, type) -> collaborators.first { isSameType(it.second, type) } },
+                keySelector = { (_, type) ->
+                    collaborators.first { it.second.classId == type.classId && types.isRelated(it.second, type) }
+                },
                 valueTransform = { (parameter, _) -> parameter },
             )
             .filterValues { it.size > 1 }
             .mapKeys { (collaborator, _) -> collaborator.second.classId.shortClassName.asString() }
     }
 
-    private fun KaSession.collaboratorType(parameter: KtParameter): KaClassType? {
-        val type = parameter.typeReference?.run { type.withNullability(false) } as? KaClassType
-        return type?.takeUnless { candidate -> excludedTypes.any { candidate.isSubtypeOf(it) } }
-    }
+    private class CollaboratorTypes(
+        private val session: KaSession,
+        private val excludedTypes: Set<ClassId>,
+        private val ignoredSupertypes: Set<ClassId>,
+    ) {
 
-    private fun KaSession.isSameType(
-        first: KaClassType,
-        second: KaClassType,
-    ): Boolean =
-        first.classId == second.classId &&
-            first.typeArguments.zip(second.typeArguments).all { (firstArgument, secondArgument) ->
-                isRelated(firstArgument.type, secondArgument.type)
+        fun typeOf(parameter: KtParameter): KaClassType? =
+            with(session) {
+                val type = parameter.typeReference?.run { type.withNullability(false) } as? KaClassType
+                type?.takeUnless { candidate -> excludedTypes.any { candidate.isSubtypeOf(it) } }
             }
 
-    private fun KaSession.isRelated(
-        first: KaType?,
-        second: KaType?,
-    ): Boolean {
-        val firstClass = first?.withNullability(false) as? KaClassType
-        val secondClass = second?.withNullability(false) as? KaClassType
-        return when {
-            firstClass == null || secondClass == null -> true
-            firstClass.classId == secondClass.classId -> isSameType(firstClass, secondClass)
-            firstClass.isSubtypeOf(secondClass) || secondClass.isSubtypeOf(firstClass) -> true
-            else -> supertypeIds(firstClass).intersect(supertypeIds(secondClass)).isNotEmpty()
-        }
-    }
+        fun isRelated(
+            first: KaType?,
+            second: KaType?,
+        ): Boolean =
+            with(session) {
+                val firstClass = first?.withNullability(false) as? KaClassType
+                val secondClass = second?.withNullability(false) as? KaClassType
+                when {
+                    firstClass == null || secondClass == null -> true
 
-    private fun KaSession.supertypeIds(type: KaClassType): Set<ClassId> =
-        type.allSupertypes
-            .filterIsInstance<KaClassType>()
-            .map { it.classId }
-            .filterNot { it in ignoredSupertypes }
-            .toSet()
+                    firstClass.classId == secondClass.classId ->
+                        firstClass.typeArguments
+                            .zip(secondClass.typeArguments)
+                            .all { (firstArgument, secondArgument) ->
+                                isRelated(firstArgument.type, secondArgument.type)
+                            }
+
+                    firstClass.isSubtypeOf(secondClass) || secondClass.isSubtypeOf(firstClass) -> true
+
+                    else -> supertypeIds(firstClass).intersect(supertypeIds(secondClass)).isNotEmpty()
+                }
+            }
+
+        private fun supertypeIds(type: KaClassType): Set<ClassId> =
+            with(session) {
+                type.allSupertypes
+                    .filterIsInstance<KaClassType>()
+                    .map { it.classId }
+                    .filterNot { it in ignoredSupertypes }
+                    .toSet()
+            }
+    }
 }

@@ -24,29 +24,35 @@ class ApiDependency(config: Config) :
     override fun visitKtFile(file: KtFile) {
         super.visitKtFile(file)
         if (!file.name.endsWith(GRADLE_SCRIPT_SUFFIX)) return
-        val calls = file.collectDescendantsOfType<KtCallExpression>()
-        val exported = calls
-            .filter { it.calleeName() == EXPORT }
-            .map { it.dependencyNotation() }
+        val declarations = file.collectDescendantsOfType<KtCallExpression>().map(::Declaration)
+        val exported = declarations
+            .filter { it.isExport() }
+            .map { it.notation() }
             .toSet()
-        calls
-            .filter { it.isApiDeclaration() && it.dependencyNotation() !in exported }
-            .forEach { report(Finding(Entity.from(it), it.findingMessage())) }
+        declarations
+            .filter { it.isApi() && it.notation() !in exported }
+            .forEach { report(Finding(Entity.from(it.call), it.findingMessage())) }
     }
 
-    private fun KtCallExpression.isApiDeclaration(): Boolean {
-        val name = calleeName()
-        return name == API || name?.endsWith(API_SUFFIX) == true
-    }
-
-    private fun KtCallExpression.findingMessage(): String =
-        "Use `implementation()` for `${dependencyNotation()}`. " +
+    private fun Declaration.findingMessage(): String =
+        "Use `implementation()` for `${notation()}`. " +
             "`api()` is only for a dependency this script exports to the iOS framework."
-}
 
-private fun KtCallExpression.dependencyNotation(): String =
-    valueArguments
-        .singleOrNull()
-        ?.getArgumentExpression()
-        ?.text
-        .orEmpty()
+    private class Declaration(val call: KtCallExpression) {
+
+        fun isExport(): Boolean =
+            call.calleeName() == EXPORT
+
+        fun isApi(): Boolean {
+            val name = call.calleeName()
+            return name == API || name?.endsWith(API_SUFFIX) == true
+        }
+
+        fun notation(): String =
+            call.valueArguments
+                .singleOrNull()
+                ?.getArgumentExpression()
+                ?.text
+                .orEmpty()
+    }
+}

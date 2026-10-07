@@ -26,26 +26,28 @@ class ModifierChainWrapping(config: Config) :
     override fun visitQualifiedExpression(expression: KtQualifiedExpression) {
         super.visitQualifiedExpression(expression)
         if (!expression.isChainEnd()) return
-        val links = expression.links()
-        if (links.startsWithModifier() && links.hasUnwrappedCalls()) {
+        val chain = Chain(expression)
+        if (chain.startsWith(chainStarts) && chain.hasUnwrappedCalls(minCallCount)) {
             report(Finding(Entity.from(expression), "Put each call of the modifier chain on a new line."))
         }
     }
 
-    private fun List<KtQualifiedExpression>.startsWithModifier(): Boolean =
-        (last().receiverExpression as? KtNameReferenceExpression)?.getReferencedName() in chainStarts
-
-    private fun List<KtQualifiedExpression>.hasUnwrappedCalls(): Boolean =
-        count { it.selectorExpression is KtCallExpression } >= minCallCount && !all { it.isWrapped() }
-
     private fun KtQualifiedExpression.isChainEnd(): Boolean =
         (parent as? KtQualifiedExpression)?.receiverExpression != this
 
-    private fun KtQualifiedExpression.links(): List<KtQualifiedExpression> =
-        generateSequence(this) { it.receiverExpression as? KtQualifiedExpression }.toList()
+    private class Chain(end: KtQualifiedExpression) {
 
-    private fun KtQualifiedExpression.isWrapped(): Boolean {
-        val whitespace = operationTokenNode.psi.prevSibling as? PsiWhiteSpace
-        return whitespace != null && '\n' in whitespace.text
+        private val links = generateSequence(end) { it.receiverExpression as? KtQualifiedExpression }.toList()
+
+        fun startsWith(names: Set<String>): Boolean =
+            (links.last().receiverExpression as? KtNameReferenceExpression)?.getReferencedName() in names
+
+        fun hasUnwrappedCalls(minCallCount: Int): Boolean =
+            links.count { it.selectorExpression is KtCallExpression } >= minCallCount && !links.all { it.isWrapped() }
+
+        private fun KtQualifiedExpression.isWrapped(): Boolean {
+            val whitespace = operationTokenNode.psi.prevSibling as? PsiWhiteSpace
+            return whitespace != null && '\n' in whitespace.text
+        }
     }
 }

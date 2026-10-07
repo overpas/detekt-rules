@@ -2,6 +2,8 @@ package by.overpas.detekt.style
 
 import by.overpas.detekt.core.calleeName
 import by.overpas.detekt.core.hasAnnotation
+import by.overpas.detekt.core.isConstructorCall
+import by.overpas.detekt.core.shortTypeName
 import com.intellij.psi.PsiElement
 import dev.detekt.api.Config
 import dev.detekt.api.Configuration
@@ -17,10 +19,7 @@ import org.jetbrains.kotlin.psi.KtForExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.KtNullableType
 import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtTypeReference
-import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.kotlin.psi.psiUtil.parents
 
@@ -119,48 +118,49 @@ class ForwardedParameter(config: Config) :
             .mapNotNull { it.name }
             .toSet()
         if (parameters.isEmpty()) return
+        val forwarding = Forwarding(function, parameters)
         function.collectDescendantsOfType<KtCallExpression>()
             .filterNot { it.isConstructorCall() || it.calleeName() in allowedCalls }
             .forEach { call ->
-                call.valueArguments
-                    .mapNotNull { it.getArgumentExpression() as? KtNameReferenceExpression }
-                    .filter { it.getReferencedName() in parameters && it.resolvesTo(function) }
-                    .forEach { report(Finding(Entity.from(it), it.findingMessage(function, call))) }
+                forwarding.arguments(call)
+                    .forEach { report(Finding(Entity.from(it), forwarding.message(it, call))) }
             }
     }
 
     private fun KtNamedFunction.isExempt(): Boolean =
         hasAnnotation(composableAnnotations) || hasModifier(KtTokens.OVERRIDE_KEYWORD)
 
-    private fun KtCallExpression.isConstructorCall(): Boolean =
-        calleeName()?.firstOrNull()?.isUpperCase() == true
+    private class Forwarding(
+        private val function: KtNamedFunction,
+        private val parameters: Set<String>,
+    ) {
 
-    private fun KtNameReferenceExpression.resolvesTo(function: KtNamedFunction): Boolean {
-        val name = getReferencedName()
-        return parents
-            .takeWhile { it != function }
-            .none { name in it.declaredNames() }
-    }
+        fun arguments(call: KtCallExpression): List<KtNameReferenceExpression> =
+            call.valueArguments
+                .mapNotNull { it.getArgumentExpression() as? KtNameReferenceExpression }
+                .filter { it.getReferencedName() in parameters && it.resolvesToParameter() }
 
-    private fun PsiElement.declaredNames(): Set<String> =
-        when (this) {
-            is KtBlockExpression -> statements.filterIsInstance<KtProperty>().mapNotNull { it.name }.toSet()
-            is KtFunction -> valueParameters.mapNotNull { it.name }.toSet()
-            is KtForExpression -> setOfNotNull(loopParameter?.name)
-            is KtCatchClause -> setOfNotNull(catchParameter?.name)
-            else -> emptySet()
+        fun message(
+            argument: KtNameReferenceExpression,
+            call: KtCallExpression,
+        ): String =
+            "`${argument.getReferencedName()}` is a parameter of `${function.name.orEmpty()}`. " +
+                "Do not pass it to `${call.calleeExpression?.text.orEmpty()}`."
+
+        private fun KtNameReferenceExpression.resolvesToParameter(): Boolean {
+            val name = getReferencedName()
+            return parents
+                .takeWhile { it != function }
+                .none { name in it.declaredNames() }
         }
 
-    private fun KtTypeReference.shortTypeName(): String? {
-        val element = typeElement
-        val named = if (element is KtNullableType) element.innerType else element
-        return (named as? KtUserType)?.referencedName
+        private fun PsiElement.declaredNames(): Set<String> =
+            when (this) {
+                is KtBlockExpression -> statements.filterIsInstance<KtProperty>().mapNotNull { it.name }.toSet()
+                is KtFunction -> valueParameters.mapNotNull { it.name }.toSet()
+                is KtForExpression -> setOfNotNull(loopParameter?.name)
+                is KtCatchClause -> setOfNotNull(catchParameter?.name)
+                else -> emptySet()
+            }
     }
-
-    private fun KtNameReferenceExpression.findingMessage(
-        function: KtNamedFunction,
-        call: KtCallExpression,
-    ): String =
-        "`${getReferencedName()}` is a parameter of `${function.name.orEmpty()}`. " +
-            "Do not pass it to `${call.calleeExpression?.text.orEmpty()}`."
 }

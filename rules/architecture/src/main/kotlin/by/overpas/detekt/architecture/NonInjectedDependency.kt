@@ -2,6 +2,7 @@ package by.overpas.detekt.architecture
 
 import by.overpas.detekt.core.calleeName
 import by.overpas.detekt.core.hasAnnotation
+import by.overpas.detekt.core.isConstructorCall
 import by.overpas.detekt.core.outermostCall
 import com.intellij.psi.util.PsiTreeUtil
 import dev.detekt.api.Config
@@ -67,7 +68,4 @@ class NonInjectedDependency(config: Config) :
         } else {
             listOfNotNull(outermostCall())
         }
-
-    private fun KtCallExpression.isConstructorCall(): Boolean =
-        calleeName()?.firstOrNull()?.isUpperCase() == true
 }

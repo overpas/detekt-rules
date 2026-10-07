@@ -28,7 +28,11 @@ class RedundantFunctionName(config: Config) :
         val className = function.checkedClassName()
         val functionName = function.name
         if (className == null || functionName == null) return
-        val phrase = className.subjectPhrases().firstOrNull { functionName.words().containsPhrase(it) } ?: return
+        val functionWords = CamelCaseName(functionName)
+        val phrase = CamelCaseName(className)
+            .subjectPhrases(ignoredWords)
+            .firstOrNull { functionWords.containsPhrase(it) }
+            ?: return
         val subject = phrase.joinToString("")
         report(
             Finding(
@@ -44,28 +48,29 @@ class RedundantFunctionName(config: Config) :
             ?.takeUnless { hasModifier(KtTokens.OVERRIDE_KEYWORD) || hasModifier(KtTokens.PRIVATE_KEYWORD) }
             ?.name
 
-    private fun String.subjectPhrases(): List<List<String>> {
-        val words = words()
-        val subject = if (words.size > 1) words.dropLast(1) else words
-        return subject.indices
-            .map { subject.drop(it) }
-            .filterNot { phrase -> phrase.all { it in ignoredWords } }
-    }
+    private class CamelCaseName(name: String) {
 
-    private fun List<String>.containsPhrase(phrase: List<String>): Boolean =
-        windowed(phrase.size).any { window ->
-            window.dropLast(1).zip(phrase.dropLast(1)).all { (word, subjectWord) ->
-                word.equals(subjectWord, ignoreCase = true)
-            } && window.last().isFormOf(phrase.last())
+        private val words = WORD_PATTERN.findAll(name).map { it.value }.toList()
+
+        fun subjectPhrases(ignoredWords: Set<String>): List<List<String>> {
+            val subject = if (words.size > 1) words.dropLast(1) else words
+            return subject.indices
+                .map { subject.drop(it) }
+                .filterNot { phrase -> phrase.all { it in ignoredWords } }
         }
 
-    private fun String.isFormOf(word: String): Boolean =
-        listOf(word, "${word}s", "${word}es").any { equals(it, ignoreCase = true) }
+        fun containsPhrase(phrase: List<String>): Boolean =
+            words.windowed(phrase.size).any { window ->
+                window.dropLast(1).zip(phrase.dropLast(1)).all { (word, subjectWord) ->
+                    word.equals(subjectWord, ignoreCase = true)
+                } && window.last().isFormOf(phrase.last())
+            }
 
-    private fun String.words(): List<String> =
-        WORD_PATTERN.findAll(this).map { it.value }.toList()
+        private fun String.isFormOf(word: String): Boolean =
+            listOf(word, "${word}s", "${word}es").any { equals(it, ignoreCase = true) }
 
-    private companion object {
-        val WORD_PATTERN = Regex("[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+")
+        private companion object {
+            val WORD_PATTERN = Regex("[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+")
+        }
     }
 }

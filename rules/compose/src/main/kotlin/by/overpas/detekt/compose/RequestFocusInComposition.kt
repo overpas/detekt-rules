@@ -33,6 +33,8 @@ class RequestFocusInComposition(config: Config) :
         listOf("LaunchedEffect", "DisposableEffect", "SideEffect"),
     ) { it.toSet() }
 
+    private val contentLambdas by lazy { ContentLambdas(effectCalls) }
+
     override fun visitCallExpression(expression: KtCallExpression) {
         super.visitCallExpression(expression)
         if (expression.calleeName() != REQUEST_FOCUS || !expression.isInComposition()) return
@@ -46,13 +48,16 @@ class RequestFocusInComposition(config: Config) :
 
     private fun KtCallExpression.isInComposition(): Boolean {
         val owner = generateSequence(getStrictParentOfType<KtFunction>()) { it.getStrictParentOfType<KtFunction>() }
-            .firstOrNull { it !is KtFunctionLiteral || !it.isComposableContent() }
+            .firstOrNull { it !is KtFunctionLiteral || !contentLambdas.isComposable(it) }
         return owner is KtNamedFunction && owner.hasAnnotation(composableAnnotations)
     }
 
-    private fun KtFunctionLiteral.isComposableContent(): Boolean {
-        val argument = (parent as? KtLambdaExpression)?.parent as? KtLambdaArgument
-        val name = (argument?.parent as? KtCallExpression)?.calleeName() ?: return false
-        return name.first().isUpperCase() && name !in effectCalls
+    private class ContentLambdas(private val effectCalls: Set<String>) {
+
+        fun isComposable(literal: KtFunctionLiteral): Boolean {
+            val argument = (literal.parent as? KtLambdaExpression)?.parent as? KtLambdaArgument
+            val name = (argument?.parent as? KtCallExpression)?.calleeName() ?: return false
+            return name.first().isUpperCase() && name !in effectCalls
+        }
     }
 }

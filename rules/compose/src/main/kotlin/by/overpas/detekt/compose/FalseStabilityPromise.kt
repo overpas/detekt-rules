@@ -3,6 +3,7 @@ package by.overpas.detekt.compose
 import by.overpas.detekt.core.calleeName
 import by.overpas.detekt.core.hasAnnotation
 import by.overpas.detekt.core.outermostCall
+import by.overpas.detekt.core.shortTypeName
 import dev.detekt.api.Config
 import dev.detekt.api.Configuration
 import dev.detekt.api.Entity
@@ -12,10 +13,8 @@ import dev.detekt.api.config
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtNullableType
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtUserType
 
 private const val SNAPSHOT_STATE_PREFIX = "mutable"
 private const val SNAPSHOT_STATE_SUFFIX = "StateOf"
@@ -47,7 +46,11 @@ class FalseStabilityPromise(config: Config) :
         val constructorProperties = klass.primaryConstructorParameters.filter { it.hasValOrVar() }
         val bodyProperties = klass.getProperties()
         (constructorProperties + bodyProperties)
-            .filter { it.isMutableCollection() || (it.isVar() && (isImmutable || !it.isSnapshotState())) }
+            .filter { declaration ->
+                val property = PromisedProperty(declaration)
+                property.isMutableCollection(collectionTypes, collectionFactories) ||
+                    (property.isVar() && (isImmutable || !property.isSnapshotState()))
+            }
             .forEach { property ->
                 report(
                     Finding(
@@ -59,23 +62,27 @@ class FalseStabilityPromise(config: Config) :
             }
     }
 
-    private fun KtCallableDeclaration.isVar(): Boolean =
-        when (this) {
-            is KtProperty -> isVar
-            is KtParameter -> isMutable
-            else -> false
+    private class PromisedProperty(private val declaration: KtCallableDeclaration) {
+
+        fun isVar(): Boolean =
+            when (declaration) {
+                is KtProperty -> declaration.isVar
+                is KtParameter -> declaration.isMutable
+                else -> false
+            }
+
+        fun isSnapshotState(): Boolean {
+            val name = (declaration as? KtProperty)?.delegateExpression?.outermostCall()?.calleeName() ?: return false
+            return name.startsWith(SNAPSHOT_STATE_PREFIX) && name.endsWith(SNAPSHOT_STATE_SUFFIX)
         }
 
-    private fun KtCallableDeclaration.isSnapshotState(): Boolean {
-        val name = (this as? KtProperty)?.delegateExpression?.outermostCall()?.calleeName() ?: return false
-        return name.startsWith(SNAPSHOT_STATE_PREFIX) && name.endsWith(SNAPSHOT_STATE_SUFFIX)
-    }
-
-    private fun KtCallableDeclaration.isMutableCollection(): Boolean {
-        val element = typeReference?.typeElement
-        val type = if (element is KtNullableType) element.innerType else element
-        val initializer: KtExpression? = (this as? KtProperty)?.initializer
-        return (type as? KtUserType)?.referencedName in collectionTypes ||
-            initializer?.outermostCall()?.calleeName() in collectionFactories
+        fun isMutableCollection(
+            collectionTypes: Set<String>,
+            collectionFactories: Set<String>,
+        ): Boolean {
+            val initializer: KtExpression? = (declaration as? KtProperty)?.initializer
+            return declaration.typeReference?.shortTypeName() in collectionTypes ||
+                initializer?.outermostCall()?.calleeName() in collectionFactories
+        }
     }
 }

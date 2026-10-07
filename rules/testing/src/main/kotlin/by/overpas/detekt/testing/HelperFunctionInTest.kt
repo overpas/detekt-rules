@@ -38,28 +38,43 @@ class HelperFunctionInTest(config: Config) :
         ),
     ) { it.toSet() }
 
+    private val functions by lazy { TestFileFunctions(testAnnotations, lifecycleAnnotations) }
+
     override fun visitKtFile(file: KtFile) {
         super.visitKtFile(file)
         if (!file.anyDescendantOfType<KtNamedFunction> { it.isUnitTest(testAnnotations) }) return
-        file.declarations.filterIsInstance<KtNamedFunction>().forEach(::check)
-        file.collectDescendantsOfType<KtClassOrObject> { it.isTestClass() }
+        file.declarations
+            .filterIsInstance<KtNamedFunction>()
+            .forEach { it.reportHelpers() }
+        file.collectDescendantsOfType<KtClassOrObject> { functions.isTestClass(it) }
             .flatMap { it.declarations + it.companionObjects.flatMap { companion -> companion.declarations } }
             .filterIsInstance<KtNamedFunction>()
-            .forEach(::check)
+            .forEach { it.reportHelpers() }
     }
 
-    private fun check(function: KtNamedFunction) {
-        if (!function.isUnitTest(lifecycleAnnotations)) function.reportHelper()
-        function.collectDescendantsOfType<KtNamedFunction> { it.isLocal && it.name != null }
-            .forEach { it.reportHelper() }
+    private fun KtNamedFunction.reportHelpers() {
+        functions.helpers(this).forEach { helper ->
+            report(
+                Finding(
+                    Entity.atName(helper),
+                    "Move the helper function `${helper.nameAsSafeName}` out of the test file.",
+                ),
+            )
+        }
     }
 
-    private fun KtClassOrObject.isTestClass(): Boolean =
-        declarations
-            .filterIsInstance<KtNamedFunction>()
-            .any { it.isUnitTest(testAnnotations) }
+    private class TestFileFunctions(
+        private val testAnnotations: Set<String>,
+        private val lifecycleAnnotations: Set<String>,
+    ) {
 
-    private fun KtNamedFunction.reportHelper() {
-        report(Finding(Entity.atName(this), "Move the helper function `$nameAsSafeName` out of the test file."))
+        fun isTestClass(classOrObject: KtClassOrObject): Boolean =
+            classOrObject.declarations
+                .filterIsInstance<KtNamedFunction>()
+                .any { it.isUnitTest(testAnnotations) }
+
+        fun helpers(function: KtNamedFunction): List<KtNamedFunction> =
+            listOfNotNull(function.takeUnless { it.isUnitTest(lifecycleAnnotations) }) +
+                function.collectDescendantsOfType<KtNamedFunction> { it.isLocal && it.name != null }
     }
 }

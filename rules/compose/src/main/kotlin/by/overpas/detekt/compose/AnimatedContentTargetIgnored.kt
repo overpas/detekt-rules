@@ -31,7 +31,7 @@ class AnimatedContentTargetIgnored(config: Config) :
         super.visitCallExpression(expression)
         val name = expression.calleeName()?.takeIf { it in contentSwitchCalls } ?: return
         val literal = expression.contentLambda()?.functionLiteral
-        if (literal != null && !literal.usesTarget()) {
+        if (literal != null && !ContentLambda(literal).usesTarget()) {
             report(
                 Finding(
                     Entity.from(expression),
@@ -47,17 +47,20 @@ class AnimatedContentTargetIgnored(config: Config) :
         return trailing ?: named?.getArgumentExpression() as? KtLambdaExpression
     }
 
-    private fun KtFunctionLiteral.usesTarget(): Boolean {
-        val parameter = valueParameters.firstOrNull()
-        val name = parameter?.name ?: IMPLICIT_PARAMETER
-        return bodyExpression
-            ?.collectDescendantsOfType<KtNameReferenceExpression> { it.getReferencedName() == name }
-            .orEmpty()
-            .any { parameter != null || it.implicitParameterOwner() == this }
-    }
+    private class ContentLambda(private val literal: KtFunctionLiteral) {
 
-    private fun KtNameReferenceExpression.implicitParameterOwner(): KtFunctionLiteral? =
-        parents
-            .filterIsInstance<KtFunctionLiteral>()
-            .firstOrNull { !it.hasParameterSpecification() }
+        fun usesTarget(): Boolean {
+            val parameter = literal.valueParameters.firstOrNull()
+            val name = parameter?.name ?: IMPLICIT_PARAMETER
+            return literal.bodyExpression
+                ?.collectDescendantsOfType<KtNameReferenceExpression> { it.getReferencedName() == name }
+                .orEmpty()
+                .any { parameter != null || it.implicitParameterOwner() == literal }
+        }
+
+        private fun KtNameReferenceExpression.implicitParameterOwner(): KtFunctionLiteral? =
+            parents
+                .filterIsInstance<KtFunctionLiteral>()
+                .firstOrNull { !it.hasParameterSpecification() }
+    }
 }

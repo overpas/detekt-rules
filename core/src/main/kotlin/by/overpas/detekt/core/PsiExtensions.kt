@@ -7,7 +7,10 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtNullableType
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
+import org.jetbrains.kotlin.psi.KtTypeReference
+import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.psi.psiUtil.parents
 
 fun KtAnnotated.hasAnnotation(names: Set<String>): Boolean =
@@ -29,6 +32,15 @@ fun KtExpression.outermostCall(): KtCallExpression? =
 
 fun KtCallExpression.calleeName(): String? =
     (calleeExpression as? KtNameReferenceExpression)?.getReferencedName()
+
+fun KtCallExpression.isConstructorCall(): Boolean =
+    calleeName()?.firstOrNull()?.isUpperCase() == true
+
+fun KtTypeReference.shortTypeName(): String? {
+    val element = typeElement
+    val named = if (element is KtNullableType) element.innerType else element
+    return (named as? KtUserType)?.referencedName
+}
 
 fun KtExpression.trailingLambdaBody(): KtBlockExpression? =
     outermostCall()

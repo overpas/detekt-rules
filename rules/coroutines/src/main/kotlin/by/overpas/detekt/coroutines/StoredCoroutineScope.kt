@@ -2,6 +2,7 @@ package by.overpas.detekt.coroutines
 
 import by.overpas.detekt.core.calleeName
 import by.overpas.detekt.core.outermostCall
+import by.overpas.detekt.core.shortTypeName
 import by.overpas.detekt.core.trailingLambdaBody
 import dev.detekt.api.Config
 import dev.detekt.api.Configuration
@@ -12,13 +13,11 @@ import dev.detekt.api.config
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtNullableType
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtParameterList
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtTypeReference
-import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 
 class StoredCoroutineScope(config: Config) :
@@ -37,11 +36,13 @@ class StoredCoroutineScope(config: Config) :
     @Configuration("short names of the classes that own a coroutine scope as lifecycle infrastructure")
     private val allowedClasses: Set<String> by config(emptyList<String>()) { it.toSet() }
 
+    private val scopes by lazy { Scopes(scopeTypes, scopeFactories) }
+
     override fun visitClassOrObject(classOrObject: KtClassOrObject) {
         super.visitClassOrObject(classOrObject)
         if (classOrObject.isAllowed()) return
         classOrObject.superTypeListEntries
-            .filter { it.typeReference.isScopeType() }
+            .filter { scopes.isType(it.typeReference) }
             .forEach { it.reportScope("`${classOrObject.nameAsSafeName}` is a CoroutineScope") }
     }
 
@@ -49,7 +50,7 @@ class StoredCoroutineScope(config: Config) :
         super.visitParameter(parameter)
         val constructor = (parameter.parent as? KtParameterList)?.parent as? KtPrimaryConstructor
         val owner = constructor?.getContainingClassOrObject()
-        if (owner != null && !owner.isAllowed() && parameter.typeReference.isScopeType()) {
+        if (owner != null && !owner.isAllowed() && scopes.isType(parameter.typeReference)) {
             parameter.reportScope("`${owner.nameAsSafeName}` receives the scope `${parameter.nameAsSafeName}`")
         }
     }
@@ -64,29 +65,35 @@ class StoredCoroutineScope(config: Config) :
     }
 
     private fun KtProperty.holdsScope(): Boolean =
-        typeReference.isScopeType() ||
-            initializer?.createsScope() == true ||
-            delegateExpression?.lazyResult()?.createsScope() == true
-
-    private fun KtExpression.createsScope(): Boolean =
-        outermostCall()?.calleeName() in scopeFactories
-
-    private fun KtExpression.lazyResult(): KtExpression? =
-        trailingLambdaBody()
-            ?.statements
-            .orEmpty()
-            .lastOrNull()
-
-    private fun KtTypeReference?.isScopeType(): Boolean {
-        val element = this?.typeElement
-        val type = if (element is KtNullableType) element.innerType else element
-        return (type as? KtUserType)?.referencedName in scopeTypes
-    }
+        scopes.isType(typeReference) ||
+            scopes.isCreatedBy(initializer) ||
+            scopes.isLazilyCreatedBy(delegateExpression)
 
     private fun KtClassOrObject.isAllowed(): Boolean =
         name in allowedClasses
 
     private fun KtElement.reportScope(subject: String) {
         report(Finding(Entity.from(this), "$subject. Replace the stored scope with suspend functions."))
+    }
+
+    private class Scopes(
+        private val types: Set<String>,
+        private val factories: Set<String>,
+    ) {
+
+        fun isType(reference: KtTypeReference?): Boolean =
+            reference?.shortTypeName() in types
+
+        fun isCreatedBy(expression: KtExpression?): Boolean =
+            expression?.outermostCall()?.calleeName() in factories
+
+        fun isLazilyCreatedBy(delegate: KtExpression?): Boolean =
+            isCreatedBy(delegate?.lazyResult())
+
+        private fun KtExpression.lazyResult(): KtExpression? =
+            trailingLambdaBody()
+                ?.statements
+                .orEmpty()
+                .lastOrNull()
     }
 }

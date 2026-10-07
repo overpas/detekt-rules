@@ -30,8 +30,8 @@ dependencies {
 ```
 
 Configure the rules under their rule set ids in the detekt config. [Rules](#rules) lists the options
-of each rule. `RepeatedCollaboratorType` needs type resolution, so configure it in the config of the
-type resolution tasks (see `config/detekt/detekt-type-resolution.yml`).
+of each rule. `HiddenAbstraction` and `RepeatedCollaboratorType` need type resolution, so configure
+them in the config of the type resolution tasks (see `config/detekt/detekt-type-resolution.yml`).
 
 To upgrade, delete the old jars in the same change, so that two versions are never on the plugin
 classpath. Stop the Gradle daemon (`./gradlew --stop`) after a jar change, because the daemon might cache
@@ -43,6 +43,55 @@ Every rule also takes the standard detekt
 options `active`, `severity`, `excludes` and `includes`.
 
 ### `overpas-architecture`
+
+#### `HiddenAbstraction`
+
+A class, an interface, an object or a file must not have more helper functions than entry points. Many helper functions that call each other show a hidden abstraction. Put the helpers behind a new abstraction, or move them to the types that they use. Needs type resolution: configure it in the config of the type resolution tasks.
+
+The rule checks each class, interface and object, and the top level of each file. A helper is a function that other code in the same scope calls, also from a nested class. A public helper is also a helper. An entry point is an override, a function without a body, or a function that no code in the scope calls. A companion object counts with its class. A local function counts with the class or the file that contains it. A nested class has its own count. The rule does not count a private or local function that no code calls, for example a preview.
+
+No options.
+
+Fails:
+
+```kotlin
+class Checkout(private val cart: Cart) {
+    fun total(): Int =
+        subtotal() + tax()
+
+    private fun subtotal(): Int =
+        cart.items.sumOf { it.price }
+
+    private fun tax(): Int =
+        subtotal() / 10
+}
+
+fun receipt(order: Order): String =
+    header(order) + lines(order)
+
+fun header(order: Order): String =
+    "Order ${order.id}"
+
+fun lines(order: Order): String =
+    order.items.joinToString("\n")
+```
+
+Passes:
+
+```kotlin
+class Checkout(private val cart: Cart) {
+    fun total(): Int =
+        cart.subtotal() + cart.tax()
+}
+
+class Cart(private val items: List<Item>) {
+    fun subtotal(): Int =
+        items.sumOf { it.price }
+
+    fun tax(): Int =
+        subtotal() / 10
+}
+```
 
 #### `NonInjectedDependency`
 

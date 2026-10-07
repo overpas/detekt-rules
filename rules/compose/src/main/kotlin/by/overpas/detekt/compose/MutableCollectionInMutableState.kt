@@ -30,7 +30,8 @@ class MutableCollectionInMutableState(config: Config) :
     override fun visitCallExpression(expression: KtCallExpression) {
         super.visitCallExpression(expression)
         val name = expression.calleeName()?.takeIf { it in stateFactories } ?: return
-        if (!expression.hasMutableTypeArgument() && !expression.hasMutableValue()) return
+        val state = StateCreation(expression)
+        if (!state.hasMutableTypeArgument(collectionTypes) && !state.hasMutableValue(collectionFactories)) return
         report(
             Finding(
                 Entity.from(expression),
@@ -40,13 +41,18 @@ class MutableCollectionInMutableState(config: Config) :
         )
     }
 
-    private fun KtCallExpression.hasMutableTypeArgument(): Boolean =
-        typeArguments.any { (it.typeReference?.typeElement as? KtUserType)?.referencedName in collectionTypes }
+    private class StateCreation(private val call: KtCallExpression) {
 
-    private fun KtCallExpression.hasMutableValue(): Boolean =
-        valueArguments
-            .firstOrNull()
-            ?.getArgumentExpression()
-            ?.outermostCall()
-            ?.calleeName() in collectionFactories
+        fun hasMutableTypeArgument(collectionTypes: Set<String>): Boolean =
+            call.typeArguments.any {
+                (it.typeReference?.typeElement as? KtUserType)?.referencedName in collectionTypes
+            }
+
+        fun hasMutableValue(collectionFactories: Set<String>): Boolean =
+            call.valueArguments
+                .firstOrNull()
+                ?.getArgumentExpression()
+                ?.outermostCall()
+                ?.calleeName() in collectionFactories
+    }
 }

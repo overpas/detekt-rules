@@ -60,54 +60,32 @@ class LowLevelUiPrimitive(config: Config) :
         ),
     ) { patterns -> patterns.map(::toRegex) }
 
+    private val lowLevelNames by lazy { LowLevelNames(forbiddenImports, allowedImports) }
+
     override fun visitImportDirective(importDirective: KtImportDirective) {
         super.visitImportDirective(importDirective)
         val importedName = importDirective.importedFqName?.asString() ?: return
         val name = if (importDirective.isAllUnder) "$importedName.$WILDCARD" else importedName
-        if (name.isLowLevel()) report(importDirective, name)
+        if (lowLevelNames.matches(name)) report(importDirective, name)
     }
 
     override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression) {
         super.visitDotQualifiedExpression(expression)
         if (expression.parent is KtDotQualifiedExpression || expression.isInHeader()) return
-        expression.qualifiedNameSegments().lowLevelPrefix()?.let { report(expression, it) }
+        lowLevelNames.firstPrefix(DotQualifiedName(expression).segments())?.let { report(expression, it) }
     }
 
     override fun visitUserType(type: KtUserType) {
         super.visitUserType(type)
         if (type.parent is KtUserType) return
-        generateSequence(type) { it.qualifier }
+        val segments = generateSequence(type) { it.qualifier }
             .map { it.referencedName }
             .toList()
             .reversed()
             .takeWhile { it != null }
             .filterNotNull()
-            .lowLevelPrefix()
-            ?.let { report(type, it) }
+        lowLevelNames.firstPrefix(segments)?.let { report(type, it) }
     }
-
-    private fun KtDotQualifiedExpression.qualifiedNameSegments(): List<String> {
-        val parts = generateSequence<KtExpression>(this) { (it as? KtDotQualifiedExpression)?.receiverExpression }
-            .map { (it as? KtDotQualifiedExpression)?.selectorExpression ?: it }
-            .toList()
-            .asReversed()
-        val names = parts
-            .asSequence()
-            .map { (it as? KtNameReferenceExpression)?.getReferencedName() }
-            .takeWhile { it != null }
-            .filterNotNull()
-            .toList()
-        val callName = (parts.getOrNull(names.size) as? KtCallExpression)?.calleeName()
-        return names + listOfNotNull(callName)
-    }
-
-    private fun List<String>.lowLevelPrefix(): String? =
-        runningReduce { prefix, segment -> "$prefix.$segment" }
-            .drop(1)
-            .firstOrNull { it.isLowLevel() }
-
-    private fun String.isLowLevel(): Boolean =
-        forbiddenImports.any { it.matches(this) } && allowedImports.none { it.matches(this) }
 
     private fun PsiElement.isInHeader(): Boolean =
         parents.any { it is KtImportDirective || it is KtPackageDirective }
@@ -123,7 +101,42 @@ class LowLevelUiPrimitive(config: Config) :
             ),
         )
     }
-}
 
-private fun toRegex(pattern: String): Regex =
-    Regex(pattern.split(WILDCARD).joinToString(".*") { Regex.escape(it) })
+    private fun toRegex(pattern: String): Regex =
+        Regex(pattern.split(WILDCARD).joinToString(".*") { Regex.escape(it) })
+
+    private class LowLevelNames(
+        private val forbidden: List<Regex>,
+        private val allowed: List<Regex>,
+    ) {
+
+        fun matches(name: String): Boolean =
+            forbidden.any { it.matches(name) } && allowed.none { it.matches(name) }
+
+        fun firstPrefix(segments: List<String>): String? =
+            segments
+                .runningReduce { prefix, segment -> "$prefix.$segment" }
+                .drop(1)
+                .firstOrNull { matches(it) }
+    }
+
+    private class DotQualifiedName(private val expression: KtDotQualifiedExpression) {
+
+        fun segments(): List<String> {
+            val parts = generateSequence<KtExpression>(expression) {
+                (it as? KtDotQualifiedExpression)?.receiverExpression
+            }
+                .map { (it as? KtDotQualifiedExpression)?.selectorExpression ?: it }
+                .toList()
+                .asReversed()
+            val names = parts
+                .asSequence()
+                .map { (it as? KtNameReferenceExpression)?.getReferencedName() }
+                .takeWhile { it != null }
+                .filterNotNull()
+                .toList()
+            val callName = (parts.getOrNull(names.size) as? KtCallExpression)?.calleeName()
+            return names + listOfNotNull(callName)
+        }
+    }
+}

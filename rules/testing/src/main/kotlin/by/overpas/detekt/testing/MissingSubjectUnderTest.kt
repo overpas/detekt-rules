@@ -29,6 +29,8 @@ class MissingSubjectUnderTest(config: Config) :
     @Configuration("name of the subject under test")
     private val subjectName: String by config("sut")
 
+    private val subject by lazy { Subject(subjectName) }
+
     override fun visitNamedFunction(function: KtNamedFunction) {
         super.visitNamedFunction(function)
         if (!function.isUnitTest(testAnnotations)) return
@@ -36,15 +38,18 @@ class MissingSubjectUnderTest(config: Config) :
             ?.let { body -> body.blocks().takeIf { it.size in MIN_BLOCK_COUNT..MAX_BLOCK_COUNT } }
             ?: return
         val act = blocks[blocks.size - MIN_BLOCK_COUNT]
-        if (act.none { it.usesSubject() }) {
+        if (act.none { subject.isUsedBy(it) }) {
             report(Finding(Entity.atName(function), "The act block must use `$subjectName`."))
         }
     }
 
-    private fun KtExpression.usesSubject(): Boolean =
-        isSubject() ||
-            anyDescendantOfType<KtNameReferenceExpression> { it.isSubject() }
+    private class Subject(private val subjectName: String) {
 
-    private fun KtExpression.isSubject(): Boolean =
-        this is KtNameReferenceExpression && getReferencedName() == subjectName
+        fun isUsedBy(expression: KtExpression): Boolean =
+            expression.isSubject() ||
+                expression.anyDescendantOfType<KtNameReferenceExpression> { it.isSubject() }
+
+        private fun KtExpression.isSubject(): Boolean =
+            this is KtNameReferenceExpression && getReferencedName() == subjectName
+    }
 }

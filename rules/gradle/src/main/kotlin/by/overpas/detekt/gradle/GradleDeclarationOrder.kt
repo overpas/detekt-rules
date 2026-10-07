@@ -7,15 +7,11 @@ import dev.detekt.api.Entity
 import dev.detekt.api.Finding
 import dev.detekt.api.Rule
 import dev.detekt.api.config
-import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 private const val GRADLE_SCRIPT_SUFFIX = ".gradle.kts"
-private const val PLUGIN_ALIAS = "alias"
 private const val PROJECTS_PREFIX = "projects."
 private const val PROJECT_CALL_PREFIX = "project("
 private const val LIBS_PREFIX = "libs."
@@ -47,130 +43,77 @@ class GradleDeclarationOrder(config: Config) :
         ),
     )
 
+    private val blocks by lazy { ScriptBlocks(testLibraries) }
+
     override fun visitCallExpression(expression: KtCallExpression) {
         super.visitCallExpression(expression)
         if (!expression.containingKtFile.name.endsWith(GRADLE_SCRIPT_SUFFIX)) return
         val body = expression.lambdaBody() ?: return
-        when (expression.calleeName()) {
-            "plugins" -> checkPlugins(body)
-            "sourceSets" -> checkSourceSets(body)
-            "dependencies" -> checkDependencies(body)
+        val findings = when (expression.calleeName()) {
+            "plugins" -> blocks.plugins(body)
+            "sourceSets" -> blocks.sourceSets(body)
+            "dependencies" -> blocks.dependencies(body)
+            else -> emptyList()
         }
+        findings.forEach { report(it) }
     }
 
-    private fun checkPlugins(body: KtBlockExpression) {
-        body.statements
-            .mapNotNull { statement -> statement.pluginCall()?.let { statement to it.pluginKey() } }
-            .reportUnsorted(groupThenName)
-    }
+    private class ScriptBlocks(private val testLibraries: List<String>) {
 
-    private fun checkSourceSets(body: KtBlockExpression) {
-        body.statements
-            .mapNotNull { statement -> statement.dependencyBlockName()?.let { statement to it } }
-            .reportUnsorted(naturalOrder())
-    }
+        fun plugins(body: KtBlockExpression): List<Finding> =
+            body.statements
+                .mapNotNull { statement -> statement.pluginCall()?.let { statement to it.pluginKey() } }
+                .unsorted(groupThenName)
 
-    private fun checkDependencies(body: KtBlockExpression) {
-        val declarations = body.statements.mapNotNull { it.dependencyDeclaration() }
-        reportSplitConfigurations(declarations)
-        declarations
-            .groupBy { it.configuration }
-            .values
-            .forEach { group ->
-                group
-                    .map { it.statement to it.dependencyKey() }
-                    .reportUnsorted(groupThenName)
+        fun sourceSets(body: KtBlockExpression): List<Finding> =
+            body.statements
+                .mapNotNull { statement -> statement.dependencyBlockName()?.let { statement to it } }
+                .unsorted(naturalOrder())
+
+        fun dependencies(body: KtBlockExpression): List<Finding> {
+            val declarations = body.statements.mapNotNull { it.dependencyDeclaration() }
+            return declarations.splitConfigurations() +
+                declarations
+                    .groupBy { it.configuration }
+                    .values
+                    .flatMap { group ->
+                        group
+                            .map { it.statement to it.dependencyKey() }
+                            .unsorted(groupThenName)
+                    }
+        }
+
+        private fun List<DependencyDeclaration>.splitConfigurations(): List<Finding> {
+            val closed = mutableSetOf<String>()
+            return zipWithNext { previous, next ->
+                if (previous.configuration != next.configuration) closed += previous.configuration
+                if (next.configuration in closed) {
+                    Finding(Entity.from(next.statement), "`${next.configuration}` declarations must stay together.")
+                } else {
+                    null
+                }
+            }.filterNotNull()
+        }
+
+        private fun <T> List<Pair<KtExpression, T>>.unsorted(comparator: Comparator<T>): List<Finding> =
+            zipWithNext { (previous, previousKey), (next, nextKey) ->
+                if (comparator.compare(nextKey, previousKey) < 0) {
+                    Finding(Entity.from(next), "`${next.text}` must come before `${previous.text}`.")
+                } else {
+                    null
+                }
+            }.filterNotNull()
+
+        private fun DependencyDeclaration.dependencyKey(): Pair<Int, String> {
+            val group = when {
+                notation.startsWith(PROJECTS_PREFIX) || notation.startsWith(PROJECT_CALL_PREFIX) -> PROJECT_GROUP
+
+                notation.startsWith(LIBS_PREFIX) && notation.removePrefix(LIBS_PREFIX).isTestLibrary(testLibraries) ->
+                    TEST_LIBRARY_GROUP
+
+                else -> LIBRARY_GROUP
             }
-    }
-
-    private fun reportSplitConfigurations(declarations: List<DependencyDeclaration>) {
-        val closed = mutableSetOf<String>()
-        declarations.zipWithNext { previous, next ->
-            if (previous.configuration != next.configuration) closed += previous.configuration
-            if (next.configuration in closed) {
-                report(
-                    Finding(
-                        Entity.from(next.statement),
-                        "`${next.configuration}` declarations must stay together.",
-                    ),
-                )
-            }
+            return group to notation
         }
-    }
-
-    private fun <T> List<Pair<KtExpression, T>>.reportUnsorted(comparator: Comparator<T>) {
-        zipWithNext { (previous, previousKey), (next, nextKey) ->
-            if (comparator.compare(nextKey, previousKey) < 0) {
-                report(
-                    Finding(
-                        Entity.from(next),
-                        "`${next.text}` must come before `${previous.text}`.",
-                    ),
-                )
-            }
-        }
-    }
-
-    private fun DependencyDeclaration.dependencyKey(): Pair<Int, String> {
-        val group = when {
-            notation.startsWith(PROJECTS_PREFIX) || notation.startsWith(PROJECT_CALL_PREFIX) -> PROJECT_GROUP
-
-            notation.startsWith(LIBS_PREFIX) && notation.removePrefix(LIBS_PREFIX).isTestLibrary() ->
-                TEST_LIBRARY_GROUP
-
-            else -> LIBRARY_GROUP
-        }
-        return group to notation
-    }
-
-    private fun String.isTestLibrary(): Boolean =
-        testLibraries.any { this == it || startsWith("$it.") }
-
-    private fun KtExpression.dependencyDeclaration(): DependencyDeclaration? {
-        val configuration = (this as? KtCallExpression)
-            ?.takeIf { it.lambdaArguments.isEmpty() }
-            ?.calleeName()
-        return configuration?.let {
-            DependencyDeclaration(this, it, (this as KtCallExpression).firstArgumentText())
-        }
-    }
-
-    private data class DependencyDeclaration(
-        val statement: KtExpression,
-        val configuration: String,
-        val notation: String,
-    )
-}
-
-private fun KtCallExpression.lambdaBody(): KtBlockExpression? =
-    lambdaArguments.singleOrNull()?.getLambdaExpression()?.bodyExpression
-
-private fun KtExpression.pluginCall(): KtCallExpression? =
-    when (this) {
-        is KtBinaryExpression -> left?.pluginCall()
-        is KtCallExpression -> this
-        else -> null
-    }
-
-private fun KtCallExpression.pluginKey(): Pair<Int, String> {
-    val group = if (calleeName() == PLUGIN_ALIAS) 1 else 0
-    return group to firstArgumentText()
-}
-
-private fun KtExpression.dependencyBlockName(): String? {
-    val selector = (this as? KtDotQualifiedExpression)?.selectorExpression as? KtCallExpression
-    if (selector?.calleeName() != "dependencies") return null
-    return when (val receiver = (this as KtDotQualifiedExpression).receiverExpression) {
-        is KtNameReferenceExpression -> receiver.getReferencedName()
-        is KtCallExpression -> receiver.firstArgumentText()
-        else -> null
     }
 }
-
-private fun KtCallExpression.firstArgumentText(): String =
-    valueArguments
-        .firstOrNull()
-        ?.getArgumentExpression()
-        ?.text
-        .orEmpty()
-        .trim('"')

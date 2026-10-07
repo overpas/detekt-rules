@@ -33,15 +33,18 @@ class ExceptionMessageAssertion(config: Config) :
         super.visitNamedFunction(function)
         if (!function.isUnitTest(testAnnotations)) return
         function.collectDescendantsOfType<KtQualifiedExpression>()
-            .mapNotNull { it.selectorExpression }
-            .filter { it.accessorName() in exceptionAccessors }
-            .forEach { report(Finding(Entity.from(it), it.findingMessage())) }
+            .mapNotNull { it.selectorExpression?.let(::Accessor) }
+            .filter { it.name() in exceptionAccessors }
+            .forEach { report(Finding(Entity.from(it.expression), it.findingMessage())) }
     }
 
-    private fun KtExpression.accessorName(): String? =
-        (this as? KtNameReferenceExpression)?.getReferencedName() ?: outermostCall()?.calleeName()
-
-    private fun KtExpression.findingMessage(): String =
-        "Do not read `${accessorName().orEmpty()}` in a unit test. " +
+    private fun Accessor.findingMessage(): String =
+        "Do not read `${name().orEmpty()}` in a unit test. " +
             "An exception message is not a contract; assert the exception type instead."
+
+    private class Accessor(val expression: KtExpression) {
+
+        fun name(): String? =
+            (expression as? KtNameReferenceExpression)?.getReferencedName() ?: expression.outermostCall()?.calleeName()
+    }
 }

@@ -12,6 +12,7 @@ class ArchitectureRuleSetProvider : RuleSetProvider {
         RuleSet(
             ruleSetId,
             listOf(
+                ::HiddenAbstraction,
                 ::NonInjectedDependency,
                 ::RepeatedCollaboratorType,
             ),

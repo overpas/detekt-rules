@@ -1,5 +1,7 @@
 # detekt-rules
 
+[![Build](https://github.com/overpas/detekt-rules/actions/workflows/build.yml/badge.svg)](https://github.com/overpas/detekt-rules/actions/workflows/build.yml)
+
 Opinionated [detekt](https://detekt.dev) rules for Kotlin, Compose, coroutines, Gradle and tests.
 
 | Module | Rule set id | Jar |

@@ -36,13 +36,15 @@ class StoredCoroutineScope(config: Config) :
     @Configuration("short names of the classes that own a coroutine scope as lifecycle infrastructure")
     private val allowedClasses: Set<String> by config(emptyList<String>()) { it.toSet() }
 
-    private val scopes by lazy { Scopes(scopeTypes, scopeFactories) }
+    private val types by lazy { ScopeTypes(scopeTypes) }
+
+    private val factories by lazy { ScopeFactories(scopeFactories) }
 
     override fun visitClassOrObject(classOrObject: KtClassOrObject) {
         super.visitClassOrObject(classOrObject)
         if (classOrObject.isAllowed()) return
         classOrObject.superTypeListEntries
-            .filter { scopes.isType(it.typeReference) }
+            .filter { types.matches(it.typeReference) }
             .forEach { it.reportScope("`${classOrObject.nameAsSafeName}` is a CoroutineScope") }
     }
 
@@ -50,7 +52,7 @@ class StoredCoroutineScope(config: Config) :
         super.visitParameter(parameter)
         val constructor = (parameter.parent as? KtParameterList)?.parent as? KtPrimaryConstructor
         val owner = constructor?.getContainingClassOrObject()
-        if (owner != null && !owner.isAllowed() && scopes.isType(parameter.typeReference)) {
+        if (owner != null && !owner.isAllowed() && types.matches(parameter.typeReference)) {
             parameter.reportScope("`${owner.nameAsSafeName}` receives the scope `${parameter.nameAsSafeName}`")
         }
     }
@@ -65,9 +67,9 @@ class StoredCoroutineScope(config: Config) :
     }
 
     private fun KtProperty.holdsScope(): Boolean =
-        scopes.isType(typeReference) ||
-            scopes.isCreatedBy(initializer) ||
-            scopes.isLazilyCreatedBy(delegateExpression)
+        types.matches(typeReference) ||
+            factories.creates(initializer) ||
+            factories.createsLazily(delegateExpression)
 
     private fun KtClassOrObject.isAllowed(): Boolean =
         name in allowedClasses
@@ -76,24 +78,24 @@ class StoredCoroutineScope(config: Config) :
         report(Finding(Entity.from(this), "$subject. Replace the stored scope with suspend functions."))
     }
 
-    private class Scopes(
-        private val types: Set<String>,
-        private val factories: Set<String>,
-    ) {
+    private class ScopeTypes(private val names: Set<String>) {
 
-        fun isType(reference: KtTypeReference?): Boolean =
-            reference?.shortTypeName() in types
+        fun matches(reference: KtTypeReference?): Boolean =
+            reference?.shortTypeName() in names
+    }
 
-        fun isCreatedBy(expression: KtExpression?): Boolean =
-            expression?.outermostCall()?.calleeName() in factories
+    private class ScopeFactories(private val names: Set<String>) {
 
-        fun isLazilyCreatedBy(delegate: KtExpression?): Boolean =
-            isCreatedBy(delegate?.lazyResult())
+        fun creates(expression: KtExpression?): Boolean =
+            expression?.outermostCall()?.calleeName() in names
 
-        private fun KtExpression.lazyResult(): KtExpression? =
-            trailingLambdaBody()
-                ?.statements
-                .orEmpty()
-                .lastOrNull()
+        fun createsLazily(delegate: KtExpression?): Boolean =
+            creates(
+                delegate
+                    ?.trailingLambdaBody()
+                    ?.statements
+                    .orEmpty()
+                    .lastOrNull(),
+            )
     }
 }

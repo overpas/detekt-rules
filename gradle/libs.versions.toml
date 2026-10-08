@@ -1,6 +1,6 @@
 [versions]
 detekt = "2.0.0-alpha.6"
-kotlin = "2.4.10"
+kotlin = "2.4.21"
 kover = "0.9.9"
 shadow = "9.6.1"
 

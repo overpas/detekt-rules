@@ -3,6 +3,17 @@
 All notable changes are documented in this file. The project uses
 [Semantic Versioning](https://semver.org).
 
+## 0.4.0
+
+### Added rules
+
+- `overpas-architecture`: `LowCohesion` reports a class or an object that has unrelated groups of
+  members. A group is a set of properties and the functions that use them. Split the class along the
+  groups. Set `allowedComponents` to allow more groups, `minFunctions` to skip small classes,
+  `ignoredFunctions` to exclude functions from the groups and `areDataClassesIgnored` to check data
+  classes. The rule needs type resolution, so configure it in the config of the type resolution
+  tasks.
+
 ## 0.3.0
 
 ### Added rules

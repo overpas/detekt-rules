@@ -30,7 +30,7 @@ dependencies {
 ```
 
 Configure the rules under their rule set ids in the detekt config. [Rules](#rules) lists the options
-of each rule. `HiddenAbstraction` and `RepeatedCollaboratorType` need type resolution, so configure
+of each rule. `HiddenAbstraction`, `LowCohesion` and `RepeatedCollaboratorType` need type resolution, so configure
 them in the config of the type resolution tasks (see `config/detekt/detekt-type-resolution.yml`).
 
 To upgrade, delete the old jars in the same change, so that two versions are never on the plugin
@@ -90,6 +90,49 @@ class Cart(private val items: List<Item>) {
 
     fun tax(): Int =
         subtotal() / 10
+}
+```
+
+#### `LowCohesion`
+
+A class must not contain unrelated groups of members. Each group of properties and the functions that use them is a separate responsibility. Split the class along the groups. Needs type resolution: configure it in the config of the type resolution tasks.
+
+The rule uses the LCOM4 metric. It links two members of a class or an object when a function or a property accessor uses the other member, and then counts the groups of linked members. A property delegate links like an accessor. Constructors, `init` blocks and property initializers do not link members, because they usually touch all the state. A function that uses no member and that no member uses is not in a group. Companion objects are checked on their own. The rule does not check interfaces, enums, annotation classes, object expressions and classes with interface delegation.
+
+| Option | Default | Description |
+|---|---|---|
+| `allowedComponents` | `1` | Maximum number of unrelated groups of members in a class |
+| `minFunctions` | `3` | Minimum number of functions in the groups before the rule checks a class |
+| `ignoredFunctions` | `['equals', 'hashCode', 'toString']` | Names of the functions that do not link the members of a class |
+| `areDataClassesIgnored` | `true` | Ignore data classes |
+
+Fails:
+
+```kotlin
+class OrderScreen(private val cart: Cart, private val analytics: Analytics) {
+    fun total(): Int =
+        cart.prices.sum()
+
+    fun count(): Int =
+        cart.prices.size
+
+    fun track(event: String) =
+        analytics.log(event)
+}
+```
+
+Passes:
+
+```kotlin
+class OrderScreen(private val cart: Cart, private val analytics: Analytics) {
+    fun total(): Int =
+        cart.prices.sum()
+
+    fun count(): Int =
+        cart.prices.size
+
+    fun checkout() =
+        analytics.log("total ${total()}")
 }
 ```
 

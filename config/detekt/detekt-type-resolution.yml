@@ -78,6 +78,14 @@ overpas-architecture:
     ignoredSupertypes: ['kotlin.Any', 'kotlin.Comparable', 'java.io.Serializable']
     areDataClassesIgnored: true
 
+overpas-compose:
+  PresentationEntityPassedDown:
+    active: true
+    composableAnnotations: ['Composable']
+    entitySuffixes: ['Component', 'ViewModel', 'Presenter', 'StateHolder', 'Store', 'ScreenModel']
+    entityTypes: ['androidx.lifecycle.ViewModel', 'com.arkivanov.decompose.ComponentContext', 'com.arkivanov.mvikotlin.core.store.Store', 'cafe.adriel.voyager.core.model.ScreenModel']
+    excludedTypes: ['java.awt.Component', 'androidx.compose.runtime.saveable.SaveableStateHolder', 'androidx.lifecycle.ViewModelStore', 'androidx.datastore.core.DataStore']
+
 naming:
   BooleanPropertyNaming:
     active: true

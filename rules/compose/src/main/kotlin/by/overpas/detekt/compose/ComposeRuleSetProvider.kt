@@ -18,6 +18,7 @@ class ComposeRuleSetProvider : RuleSetProvider {
                 ::LowLevelUiPrimitive,
                 ::ModifierChainWrapping,
                 ::MutableCollectionInMutableState,
+                ::PresentationEntityPassedDown,
                 ::RequestFocusInComposition,
                 ::ReturnInComposable,
             ),

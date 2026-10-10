@@ -32,7 +32,7 @@ dependencies {
 ```
 
 Configure the rules under their rule set ids in the detekt config. [Rules](#rules) lists the options
-of each rule. `HiddenAbstraction`, `LowCohesion` and `RepeatedCollaboratorType` need type resolution, so configure
+of each rule. `HiddenAbstraction`, `LowCohesion`, `RepeatedCollaboratorType` and `PresentationEntityPassedDown` need type resolution, so configure
 them in the config of the type resolution tasks (see `config/detekt/detekt-type-resolution.yml`).
 
 To upgrade, delete the old jars in the same change, so that two versions are never on the plugin
@@ -404,6 +404,46 @@ Passes:
 val items = mutableStateListOf<Item>()
 
 val items = mutableStateOf(listOf<Item>())
+```
+
+#### `PresentationEntityPassedDown`
+
+A presentation entity, such as a component, a view model, a presenter or a store, must stay in the entrypoint composable of a screen. Give state values and callbacks to the other composables. Needs type resolution: configure it in the config of the type resolution tasks.
+
+The rule checks the calls in composable functions. An argument is a finding when its type is a presentation entity and the called function or constructor is in the same file. A function in another file, such as the entrypoint of another screen or a library composable, can take the entity. A type is a presentation entity when its name or the name of one of its supertypes ends with an entity suffix, or when it is a subtype of an entity type. Method references and lambdas that call the entity are not findings.
+
+| Option | Default | Description |
+|---|---|---|
+| `composableAnnotations` | `['Composable']` | Short names of the annotations that mark a composable function |
+| `entitySuffixes` | `['Component', 'ViewModel', 'Presenter', 'StateHolder', 'Store', 'ScreenModel']` | Suffixes of the names of the presentation entity types, also checked on their supertypes |
+| `entityTypes` | `['androidx.lifecycle.ViewModel', 'com.arkivanov.decompose.ComponentContext', 'com.arkivanov.mvikotlin.core.store.Store', 'cafe.adriel.voyager.core.model.ScreenModel']` | Fully qualified names of the presentation entity types, with their subtypes |
+| `excludedTypes` | `['java.awt.Component', 'androidx.compose.runtime.saveable.SaveableStateHolder', 'androidx.lifecycle.ViewModelStore', 'androidx.datastore.core.DataStore']` | Fully qualified names of the types that are not presentation entities, with their subtypes |
+
+Fails:
+
+```kotlin
+@Composable
+fun AccountsUi(component: AccountsComponent, modifier: Modifier = Modifier) {
+    val state by component.state.collectAsStateWithLifecycle()
+    AccountsContent(state = state, component = component, modifier = modifier)
+}
+```
+
+Passes:
+
+```kotlin
+@Composable
+fun AccountsUi(component: AccountsComponent, modifier: Modifier = Modifier) {
+    val state by component.state.collectAsStateWithLifecycle()
+    AccountsContent(state = state, onAccountClick = component::onAccountClick, onClear = component::onClear, modifier = modifier)
+}
+
+@Composable
+fun RootUi(component: RootComponent) {
+    when (val child = component.child) {
+        is Child.Accounts -> AccountsUi(component = child.component)
+    }
+}
 ```
 
 #### `RequestFocusInComposition`

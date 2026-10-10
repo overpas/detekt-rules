@@ -3,6 +3,18 @@
 All notable changes are documented in this file. The project uses
 [Semantic Versioning](https://semver.org).
 
+## 0.5.0
+
+### Added rules
+
+- `overpas-compose`: `PresentationEntityPassedDown` reports a composable function that passes a
+  presentation entity, such as a component, a view model, a presenter or a store, to a function or
+  a constructor in the same file. Keep the entity in the entrypoint composable of the screen and
+  pass state values and callbacks, such as method references, instead. Set `entitySuffixes` and
+  `entityTypes` to change which types are entities, `excludedTypes` to exclude types and
+  `composableAnnotations` to change the annotations of composable functions. The rule needs type
+  resolution, so configure it in the config of the type resolution tasks.
+
 ## 0.4.0
 
 ### Added rules

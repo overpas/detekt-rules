@@ -423,6 +423,12 @@ Fails:
 
 ```kotlin
 @Composable
+fun ProfileScreen(viewModel: ProfileViewModel = viewModel()) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    ProfileContent(state = state, viewModel = viewModel)
+}
+
+@Composable
 fun AccountsUi(component: AccountsComponent, modifier: Modifier = Modifier) {
     val state by component.state.collectAsStateWithLifecycle()
     AccountsContent(state = state, component = component, modifier = modifier)
@@ -432,6 +438,12 @@ fun AccountsUi(component: AccountsComponent, modifier: Modifier = Modifier) {
 Passes:
 
 ```kotlin
+@Composable
+fun ProfileScreen(viewModel: ProfileViewModel = viewModel()) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    ProfileContent(state = state, onSave = viewModel::onSave)
+}
+
 @Composable
 fun AccountsUi(component: AccountsComponent, modifier: Modifier = Modifier) {
     val state by component.state.collectAsStateWithLifecycle()

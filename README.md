@@ -32,7 +32,7 @@ dependencies {
 ```
 
 Configure the rules under their rule set ids in the detekt config. [Rules](#rules) lists the options
-of each rule. `HiddenAbstraction`, `LowCohesion`, `RepeatedCollaboratorType` and `PresentationEntityPassedDown` need type resolution, so configure
+of each rule. `HiddenAbstraction`, `LowCohesion`, `RepeatedCollaboratorType`, `PresentationEntityPassedDown` and `TryInCoroutineFunction` need type resolution, so configure
 them in the config of the type resolution tasks (see `config/detekt/detekt-type-resolution.yml`).
 
 To upgrade, delete the old jars in the same change, so that two versions are never on the plugin
@@ -660,6 +660,51 @@ fun run() {
     val scope = CoroutineScope(Dispatchers.Default)
     scope.launch { work() }
 }
+```
+
+#### `TryInCoroutineFunction`
+
+A try in a function that uses coroutines can catch CancellationException and break the cancellation, and its finally block can run after the coroutine is cancelled. Keep the try in a function that does not use coroutines. A function uses coroutines when it is a suspend function, takes a suspend lambda or a coroutine scope, or calls a function that does. Needs type resolution: configure it in the config of the type resolution tasks.
+
+| Option | Default | Description |
+|---|---|---|
+| `scopeTypes` | `['kotlinx.coroutines.CoroutineScope']` | Fully qualified names of the coroutine scope types, with their subtypes |
+
+Fails:
+
+```kotlin
+suspend fun load(): Data =
+    try {
+        api.load()
+    } catch (e: IOException) {
+        Data.Empty
+    }
+
+class Presenter(private val scope: CoroutineScope) {
+    fun start() {
+        scope.launch {
+            try {
+                repository.load()
+            } finally {
+                hideProgress()
+            }
+        }
+    }
+}
+```
+
+Passes:
+
+```kotlin
+suspend fun load(): Data =
+    parse(api.load())
+
+fun parse(raw: String): Data =
+    try {
+        Json.decodeFromString(raw)
+    } catch (e: SerializationException) {
+        Data.Empty
+    }
 ```
 
 ### `overpas-gradle`

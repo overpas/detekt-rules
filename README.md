@@ -32,7 +32,7 @@ dependencies {
 ```
 
 Configure the rules under their rule set ids in the detekt config. [Rules](#rules) lists the options
-of each rule. `HiddenAbstraction`, `LowCohesion`, `RepeatedCollaboratorType` and `PresentationEntityPassedDown` need type resolution, so configure
+of each rule. `HiddenAbstraction`, `LowCohesion`, `RepeatedCollaboratorType`, `PresentationEntityPassedDown` and `TryInCoroutineFunction` need type resolution, so configure
 them in the config of the type resolution tasks (see `config/detekt/detekt-type-resolution.yml`).
 
 To upgrade, delete the old jars in the same change, so that two versions are never on the plugin
@@ -659,6 +659,59 @@ class Repository(private val api: Api) {
 fun run() {
     val scope = CoroutineScope(Dispatchers.Default)
     scope.launch { work() }
+}
+```
+
+#### `TryInCoroutineFunction`
+
+try, catch and finally are not idiomatic error handling in coroutine code. Use the coroutine and Kotlin error handling tools, such as Flow.catch, onCompletion, CoroutineExceptionHandler, a result type or use. A function uses coroutines when it is a suspend function, takes a suspend lambda or a coroutine scope, or calls a function that does. Needs type resolution: configure it in the config of the type resolution tasks.
+
+| Option | Default | Description |
+|---|---|---|
+| `scopeTypes` | `['kotlinx.coroutines.CoroutineScope']` | Fully qualified names of the coroutine scope types, with their subtypes |
+
+Fails:
+
+```kotlin
+suspend fun load(): Data =
+    try {
+        api.load()
+    } catch (e: IOException) {
+        Data.Empty
+    }
+
+class Presenter(private val scope: CoroutineScope) {
+    fun start() {
+        scope.launch {
+            try {
+                repository.load()
+            } finally {
+                hideProgress()
+            }
+        }
+    }
+}
+```
+
+Passes:
+
+```kotlin
+fun data(): Flow<Data> =
+    flow { emit(api.load()) }
+        .catch { emit(Data.Empty) }
+
+class Presenter(private val scope: CoroutineScope) {
+    private val errors = CoroutineExceptionHandler { _, error -> showError(error) }
+
+    fun start() {
+        scope.launch(errors) {
+            repository.load()
+        }
+    }
+}
+
+suspend fun copy(source: Source, sink: Sink) {
+    source.use { sink.write(it.read()) }
 }
 ```
 

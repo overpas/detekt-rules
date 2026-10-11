@@ -24,9 +24,9 @@ import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 class TryInCoroutineFunction(config: Config) :
     Rule(
         config,
-        "A try in a function that uses coroutines can catch CancellationException and break the cancellation, " +
-            "and its finally block can run after the coroutine is cancelled. " +
-            "Keep the try in a function that does not use coroutines.",
+        "try, catch and finally are not idiomatic error handling in coroutine code. " +
+            "Use the coroutine and Kotlin error handling tools, " +
+            "such as Flow.catch, onCompletion, CoroutineExceptionHandler, a result type or use.",
     ),
     RequiresAnalysisApi {
 
@@ -42,8 +42,8 @@ class TryInCoroutineFunction(config: Config) :
             report(
                 Finding(
                     Entity.from(expression),
-                    "`${function.nameAsSafeName}` uses coroutines. " +
-                        "Move the try into a function that does not use coroutines.",
+                    "`${function.nameAsSafeName}` uses coroutines. Replace the try with an idiomatic error handling " +
+                        "tool, such as Flow.catch, onCompletion, CoroutineExceptionHandler, a result type or use.",
                 ),
             )
         }

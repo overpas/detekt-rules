@@ -664,7 +664,7 @@ fun run() {
 
 #### `TryInCoroutineFunction`
 
-A try in a function that uses coroutines can catch CancellationException and break the cancellation, and its finally block can run after the coroutine is cancelled. Keep the try in a function that does not use coroutines. A function uses coroutines when it is a suspend function, takes a suspend lambda or a coroutine scope, or calls a function that does. Needs type resolution: configure it in the config of the type resolution tasks.
+try, catch and finally are not idiomatic error handling in coroutine code. Use the coroutine and Kotlin error handling tools, such as Flow.catch, onCompletion, CoroutineExceptionHandler, a result type or use. A function uses coroutines when it is a suspend function, takes a suspend lambda or a coroutine scope, or calls a function that does. Needs type resolution: configure it in the config of the type resolution tasks.
 
 | Option | Default | Description |
 |---|---|---|
@@ -696,15 +696,23 @@ class Presenter(private val scope: CoroutineScope) {
 Passes:
 
 ```kotlin
-suspend fun load(): Data =
-    parse(api.load())
+fun data(): Flow<Data> =
+    flow { emit(api.load()) }
+        .catch { emit(Data.Empty) }
 
-fun parse(raw: String): Data =
-    try {
-        Json.decodeFromString(raw)
-    } catch (e: SerializationException) {
-        Data.Empty
+class Presenter(private val scope: CoroutineScope) {
+    private val errors = CoroutineExceptionHandler { _, error -> showError(error) }
+
+    fun start() {
+        scope.launch(errors) {
+            repository.load()
+        }
     }
+}
+
+suspend fun copy(source: Source, sink: Sink) {
+    source.use { sink.write(it.read()) }
+}
 ```
 
 ### `overpas-gradle`

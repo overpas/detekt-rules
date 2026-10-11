@@ -3,6 +3,17 @@
 All notable changes are documented in this file. The project uses
 [Semantic Versioning](https://semver.org).
 
+## 0.6.0
+
+### Added rules
+
+- `overpas-coroutines`: `TryInCoroutineFunction` reports a `try`, with `catch` or `finally`, in a
+  function that uses coroutines. A function uses coroutines when it is a suspend function, takes a
+  suspend lambda or a coroutine scope, or calls a function that does. Handle the errors with
+  `Flow.catch`, `onCompletion`, `CoroutineExceptionHandler`, a result type or `use` instead. Set
+  `scopeTypes` to change the coroutine scope types. The rule needs type resolution, so configure it
+  in the config of the type resolution tasks.
+
 ## 0.5.0
 
 ### Added rules

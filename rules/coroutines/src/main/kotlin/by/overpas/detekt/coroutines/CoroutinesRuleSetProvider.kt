@@ -16,6 +16,7 @@ class CoroutinesRuleSetProvider : RuleSetProvider {
                 ::RunBlockingOutsideMain,
                 ::SharingInFunction,
                 ::StoredCoroutineScope,
+                ::TryInCoroutineFunction,
             ),
         )
 }

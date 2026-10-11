@@ -86,6 +86,11 @@ overpas-compose:
     entityTypes: ['androidx.lifecycle.ViewModel', 'com.arkivanov.decompose.ComponentContext', 'com.arkivanov.mvikotlin.core.store.Store', 'cafe.adriel.voyager.core.model.ScreenModel']
     excludedTypes: ['java.awt.Component', 'androidx.compose.runtime.saveable.SaveableStateHolder', 'androidx.lifecycle.ViewModelStore', 'androidx.datastore.core.DataStore']
 
+overpas-coroutines:
+  TryInCoroutineFunction:
+    active: true
+    scopeTypes: ['kotlinx.coroutines.CoroutineScope']
+
 naming:
   BooleanPropertyNaming:
     active: true

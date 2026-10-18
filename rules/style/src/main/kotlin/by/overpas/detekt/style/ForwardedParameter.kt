@@ -55,6 +55,9 @@ class ForwardedParameter(config: Config) :
     @Configuration("short names of the annotations that mark a composable function")
     private val composableAnnotations: Set<String> by config(listOf("Composable")) { it.toSet() }
 
+    @Configuration("ignore the calls to an overload of the function")
+    private val areOverloadsIgnored: Boolean by config(true)
+
     @Configuration("names of the stdlib calls that can take a parameter")
     private val allowedCalls: Set<String> by config(
         listOf(
@@ -122,7 +125,8 @@ class ForwardedParameter(config: Config) :
         if (parameters.isEmpty()) return
         val forwarding = Forwarding(function, parameters)
         function.collectDescendantsOfType<KtCallExpression>()
-            .filterNot { it.isConstructorCall() || it.calleeName() in allowedCalls || forwarding.isOverload(it) }
+            .filterNot { it.isConstructorCall() || it.calleeName() in allowedCalls }
+            .filterNot { areOverloadsIgnored && forwarding.isOverload(it) }
             .forEach { call ->
                 forwarding.arguments(call)
                     .forEach { report(Finding(Entity.from(it), forwarding.message(it, call))) }

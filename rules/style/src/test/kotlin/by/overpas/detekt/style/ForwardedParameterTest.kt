@@ -1,6 +1,7 @@
 package by.overpas.detekt.style
 
 import dev.detekt.api.Config
+import dev.detekt.test.TestConfig
 import dev.detekt.test.lint
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -255,6 +256,20 @@ class ForwardedParameterTest {
         val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `a parameter passed to an overload is reported when overloads are not ignored`() {
+        val sut = ForwardedParameter(TestConfig("areOverloadsIgnored" to false))
+        val code = """
+            fun setData(data: Tree, evaluateItem: (Item) -> Double) {
+                setData(data = data, evaluateItem = evaluateItem, 0)
+            }
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(2, findings.size)
     }
 
     @Test

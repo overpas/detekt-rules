@@ -20,7 +20,9 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
+import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
 import org.jetbrains.kotlin.psi.psiUtil.parents
 
 class ForwardedParameter(config: Config) :
@@ -52,6 +54,9 @@ class ForwardedParameter(config: Config) :
 
     @Configuration("short names of the annotations that mark a composable function")
     private val composableAnnotations: Set<String> by config(listOf("Composable")) { it.toSet() }
+
+    @Configuration("ignore the calls to an overload of the function")
+    private val areOverloadsIgnored: Boolean by config(true)
 
     @Configuration("names of the stdlib calls that can take a parameter")
     private val allowedCalls: Set<String> by config(
@@ -121,6 +126,7 @@ class ForwardedParameter(config: Config) :
         val forwarding = Forwarding(function, parameters)
         function.collectDescendantsOfType<KtCallExpression>()
             .filterNot { it.isConstructorCall() || it.calleeName() in allowedCalls }
+            .filterNot { areOverloadsIgnored && forwarding.isOverload(it) }
             .forEach { call ->
                 forwarding.arguments(call)
                     .forEach { report(Finding(Entity.from(it), forwarding.message(it, call))) }
@@ -134,6 +140,11 @@ class ForwardedParameter(config: Config) :
         private val function: KtNamedFunction,
         private val parameters: Set<String>,
     ) {
+
+        fun isOverload(call: KtCallExpression): Boolean {
+            val receiver = call.getQualifiedExpressionForSelector()?.receiverExpression
+            return call.calleeName() == function.name && (receiver == null || receiver is KtThisExpression)
+        }
 
         fun arguments(call: KtCallExpression): List<KtNameReferenceExpression> =
             call.valueArguments

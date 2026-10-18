@@ -3,6 +3,20 @@
 All notable changes are documented in this file. The project uses
 [Semantic Versioning](https://semver.org).
 
+## 0.6.1
+
+### Changed options and defaults
+
+- `overpas-style`: `ForwardedParameter` has the new `areOverloadsIgnored` option, `true` by
+  default. To keep the old behavior, set it to `false`.
+
+### Changed detection
+
+- `overpas-style`: `ForwardedParameter` no longer reports a parameter that a function passes to
+  an overload of itself, such as `save(user)` in `save(user, onSaved)`. A call to a function of the
+  same name on another receiver, such as `delegate.save(user)`, is still reported. To keep the old
+  behavior, set `areOverloadsIgnored` to `false`.
+
 ## 0.6.0
 
 ### Added rules

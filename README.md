@@ -892,6 +892,11 @@ fun save(user: User) {
 fun load(id: Int, name: String?) {
     fetch(id, name)
 }
+
+fun save(user: User, onSaved: () -> Unit) {
+    save(user)
+    onSaved()
+}
 ```
 
 #### `LinearContainsCheck`

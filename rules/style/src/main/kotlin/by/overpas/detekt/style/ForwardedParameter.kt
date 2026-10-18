@@ -20,7 +20,9 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtThisExpression
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
+import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
 import org.jetbrains.kotlin.psi.psiUtil.parents
 
 class ForwardedParameter(config: Config) :
@@ -120,7 +122,7 @@ class ForwardedParameter(config: Config) :
         if (parameters.isEmpty()) return
         val forwarding = Forwarding(function, parameters)
         function.collectDescendantsOfType<KtCallExpression>()
-            .filterNot { it.isConstructorCall() || it.calleeName() in allowedCalls }
+            .filterNot { it.isConstructorCall() || it.calleeName() in allowedCalls || forwarding.isOverload(it) }
             .forEach { call ->
                 forwarding.arguments(call)
                     .forEach { report(Finding(Entity.from(it), forwarding.message(it, call))) }
@@ -134,6 +136,11 @@ class ForwardedParameter(config: Config) :
         private val function: KtNamedFunction,
         private val parameters: Set<String>,
     ) {
+
+        fun isOverload(call: KtCallExpression): Boolean {
+            val receiver = call.getQualifiedExpressionForSelector()?.receiverExpression
+            return call.calleeName() == function.name && (receiver == null || receiver is KtThisExpression)
+        }
 
         fun arguments(call: KtCallExpression): List<KtNameReferenceExpression> =
             call.valueArguments

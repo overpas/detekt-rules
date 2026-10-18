@@ -242,4 +242,45 @@ class ForwardedParameterTest {
 
         assertEquals(0, findings.size)
     }
+
+    @Test
+    fun `a parameter passed to an overload is not reported`() {
+        val code = """
+            fun <T> setData(data: Tree<T>, evaluateItem: (T) -> Double, createItemView: (T) -> View) {
+                setData(data = data, evaluateItem = evaluateItem) { createItemView(it) }
+                this.setData(data, evaluateItem)
+            }
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `a parameter passed to a function of the same name on another receiver is reported`() {
+        val code = """
+            fun setData(data: Tree) {
+                delegate.setData(data)
+            }
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
+    fun `a parameter passed to a different function next to an overload is reported`() {
+        val code = """
+            fun setData(data: Tree) {
+                setData(data, 0)
+                store(data)
+            }
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(1, findings.size)
+    }
 }

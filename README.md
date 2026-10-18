@@ -868,6 +868,7 @@ A function must not pass its own parameter to another function. Pass a primitive
 |---|---|---|
 | `allowedTypes` | `['Int', 'Long', 'Short', 'Byte', 'Float', 'Double', 'Boolean', 'Char', 'String', 'UInt', 'ULong', 'UShort', 'UByte']` | Short names of the parameter types that a function can pass on |
 | `composableAnnotations` | `['Composable']` | Short names of the annotations that mark a composable function |
+| `areOverloadsIgnored` | `true` | Ignore the calls to an overload of the function |
 | `allowedCalls` | `['with', 'run', 'let', 'also', 'apply', 'takeIf', 'takeUnless', 'contract', 'callsInPlace', 'returns', 'returnsNotNull', 'implies', 'require', 'requireNotNull', 'check', 'checkNotNull', 'error', 'assert', 'listOf', 'listOfNotNull', 'mutableListOf', 'setOf', 'mutableSetOf', 'mapOf', 'mutableMapOf', 'arrayOf', 'sequenceOf', 'zip', 'plus', 'minus', 'contains', 'containsAll', 'containsKey', 'containsValue', 'indexOf', 'lastIndexOf', 'getOrElse', 'getOrDefault', 'getOrPut', 'union', 'intersect', 'subtract', 'add', 'addAll', 'remove', 'removeAll', 'retainAll', 'put', 'putAll', 'joinTo', 'toCollection']` | Names of the stdlib calls that can take a parameter |
 
 Fails:
@@ -891,6 +892,11 @@ fun save(user: User) {
 
 fun load(id: Int, name: String?) {
     fetch(id, name)
+}
+
+fun save(user: User, onSaved: () -> Unit) {
+    save(user)
+    onSaved()
 }
 ```
 

@@ -23,17 +23,31 @@ Opinionated [detekt](https://detekt.dev) rules for Kotlin, Compose, coroutines, 
 
 ## Use in a project
 
-Download the jars of a release from [GitHub Releases](https://github.com/overpas/detekt-rules/releases) into the project, e.g. `config/detekt/plugins/`, and add them to the detekt plugins:
+Download the jars of a release from [GitHub Releases](https://github.com/overpas/detekt-rules/releases) into the project, e.g. `config/detekt/plugins/`, add them to the detekt plugins and set `buildUponDefaultConfig = true`:
 
 ```kotlin
 dependencies {
     detektPlugins(fileTree(rootProject.layout.projectDirectory.dir("config/detekt/plugins")) { include("*.jar") })
 }
+
+detekt {
+    buildUponDefaultConfig = true
+}
 ```
 
-Configure the rules under their rule set ids in the detekt config. [Rules](#rules) lists the options
-of each rule. `HiddenAbstraction`, `LowCohesion`, `RepeatedCollaboratorType`, `PresentationEntityPassedDown` and `TryInCoroutineFunction` need type resolution, so configure
-them in the config of the type resolution tasks (see `config/detekt/detekt-type-resolution.yml`).
+Each jar contains a default config (`config/config.yml`). Without `buildUponDefaultConfig = true`,
+detekt does not use it. Put only the changes to the default config in the project detekt config,
+e.g. to activate a rule that is inactive by default:
+
+```yaml
+overpas-testing:
+  MultipleAssertions:
+    active: true
+```
+
+[Rules](#rules) lists the options of each rule. Some rules need type resolution, and their
+descriptions say so. The plain `detekt` task skips these rules and does not report it. Run the
+detekt tasks with type resolution, e.g. `./gradlew detektMain detektTest`.
 
 ## Troubleshooting
 
@@ -44,13 +58,14 @@ the old plugin classes.
 ## Rules
 
 Every rule also takes the standard detekt
-options `active`, `severity`, `excludes` and `includes`.
+options `active`, `severity`, `excludes` and `includes`. In the default config, the rules that are
+marked "Inactive by default" are inactive. All other rules are active.
 
 ### `overpas-architecture`
 
 #### `HiddenAbstraction`
 
-A class, an interface, an object or a file must not have more helper functions than entry points. Many helper functions that call each other show a hidden abstraction. Put the helpers behind a new abstraction, or move them to the types that they use. Needs type resolution: configure it in the config of the type resolution tasks.
+A class, an interface, an object or a file must not have more helper functions than entry points. Many helper functions that call each other show a hidden abstraction. Put the helpers behind a new abstraction, or move them to the types that they use. Needs type resolution, so the plain `detekt` task skips it.
 
 The rule checks each class, interface and object, and the top level of each file. A helper is a function that other code in the same scope calls, also from a nested class. A public helper is also a helper. An entry point is an override, a function without a body, or a function that no code in the scope calls. A companion object counts with its class. A local function counts with the class or the file that contains it. A nested class has its own count. The rule does not count a private or local function that no code calls, for example a preview.
 
@@ -99,7 +114,7 @@ class Cart(private val items: List<Item>) {
 
 #### `LowCohesion`
 
-A class must not contain unrelated groups of members. Each group of properties and the functions that use them is a separate responsibility. Split the class along the groups. Needs type resolution: configure it in the config of the type resolution tasks.
+A class must not contain unrelated groups of members. Each group of properties and the functions that use them is a separate responsibility. Split the class along the groups. Needs type resolution, so the plain `detekt` task skips it.
 
 The rule uses the LCOM4 metric. It links two members of a class or an object when a function or a property accessor uses the other member, and then counts the groups of linked members. A property delegate links like an accessor. Constructors, `init` blocks and property initializers do not link members, because they usually touch all the state. A function that uses no member and that no member uses is not in a group. Companion objects are checked on their own. The rule does not check interfaces, enums, annotation classes, object expressions and classes with interface delegation.
 
@@ -176,7 +191,7 @@ object Providers {
 
 #### `RepeatedCollaboratorType`
 
-A constructor must not take more than one collaborator of the same type. A group of same-type collaborators tends to grow, so the class does not scale. Put the group behind one abstraction. Needs type resolution: configure it in the config of the type resolution tasks.
+A constructor must not take more than one collaborator of the same type. A group of same-type collaborators tends to grow, so the class does not scale. Put the group behind one abstraction. Needs type resolution, so the plain `detekt` task skips it.
 
 | Option | Default | Description |
 |---|---|---|
@@ -212,7 +227,7 @@ data class Transfer(val from: Account, val to: Account)
 
 #### `AnimatedContentTargetIgnored`
 
-The outgoing and the incoming content are composed together. Content that ignores the target of its lambda shows the newest state in both.
+The outgoing and the incoming content are composed together. Content that ignores the target of its lambda shows the newest state in both. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -242,7 +257,7 @@ fun Screen(selectedId: String) {
 
 #### `CallerModifierNotFirst`
 
-The caller owns the placement of a composable. Start the root modifier chain with the modifier parameter, then add the intrinsic modifiers.
+The caller owns the placement of a composable. Start the root modifier chain with the modifier parameter, then add the intrinsic modifiers. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -277,7 +292,7 @@ fun Avatar(url: String, modifier: Modifier = Modifier) {
 
 #### `FalseStabilityPromise`
 
-A false stability promise lets Compose skip a recomposition and show stale UI. An immutable class has only read-only properties. A stable class changes only through snapshot state.
+A false stability promise lets Compose skip a recomposition and show stale UI. An immutable class has only read-only properties. A stable class changes only through snapshot state. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -312,7 +327,7 @@ class State {
 
 #### `LowLevelUiPrimitive`
 
-UI code combines design system components and does not build their look from low-level primitives: colors, typography, dimensions, shapes, drawing, custom layouts or animation specs. Put the look in the design system.
+UI code combines design system components and does not build their look from low-level primitives: colors, typography, dimensions, shapes, drawing, custom layouts or animation specs. Put the look in the design system. Inactive by default.
 
 The rule checks imports and fully qualified names in code. To check only the UI of features, set the standard `includes` option, e.g. `includes: ['**/feature/**']`.
 
@@ -354,7 +369,7 @@ fun Title(text: String) {
 
 #### `ModifierChainWrapping`
 
-A long modifier chain on one line is hard to scan. Put each call of the chain on a new line.
+A long modifier chain on one line is hard to scan. Put each call of the chain on a new line. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -384,7 +399,7 @@ val modifier = Modifier.fillMaxWidth().padding(8.dp)
 
 #### `MutableCollectionInMutableState`
 
-Compose does not see an in-place change of a mutable collection in a MutableState. Use mutableStateListOf or mutableStateMapOf, or put a read-only collection in the state.
+Compose does not see an in-place change of a mutable collection in a MutableState. Use mutableStateListOf or mutableStateMapOf, or put a read-only collection in the state. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -410,7 +425,7 @@ val items = mutableStateOf(listOf<Item>())
 
 #### `PresentationEntityPassedDown`
 
-A presentation entity, such as a component, a view model, a presenter or a store, must stay in the entrypoint composable of a screen. Give state values and callbacks to the other composables. Needs type resolution: configure it in the config of the type resolution tasks.
+A presentation entity, such as a component, a view model, a presenter or a store, must stay in the entrypoint composable of a screen. Give state values and callbacks to the other composables. Needs type resolution, so the plain `detekt` task skips it.
 
 The rule checks the calls in composable functions. An argument is a finding when its type is a presentation entity and the called function or constructor is in the same file. A function in another file, such as the entrypoint of another screen or a library composable, can take the entity. A type is a presentation entity when its name or the name of one of its supertypes ends with an entity suffix, or when it is a subtype of an entity type. Method references and lambdas that call the entity are not findings.
 
@@ -462,7 +477,7 @@ fun RootUi(component: RootComponent) {
 
 #### `RequestFocusInComposition`
 
-A focus request in the composable body runs on each recomposition. Request the focus from LaunchedEffect or from an event callback.
+A focus request in the composable body runs on each recomposition. Request the focus from LaunchedEffect or from an event callback. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -493,7 +508,7 @@ fun Screen(requester: FocusRequester) {
 
 #### `ReturnInComposable`
 
-A composable function that returns Unit must not contain return statements. Use if or when instead.
+A composable function that returns Unit must not contain return statements. Use if or when instead. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -666,7 +681,7 @@ fun run() {
 
 #### `TryInCoroutineFunction`
 
-try, catch and finally are not idiomatic error handling in coroutine code. Use the coroutine and Kotlin error handling tools, such as Flow.catch, onCompletion, CoroutineExceptionHandler, a result type or use. A function uses coroutines when it is a suspend function, takes a suspend lambda or a coroutine scope, or calls a function that does. Needs type resolution: configure it in the config of the type resolution tasks.
+try, catch and finally are not idiomatic error handling in coroutine code. Use the coroutine and Kotlin error handling tools, such as Flow.catch, onCompletion, CoroutineExceptionHandler, a result type or use. A function uses coroutines when it is a suspend function, takes a suspend lambda or a coroutine scope, or calls a function that does. Needs type resolution, so the plain `detekt` task skips it.
 
 | Option | Default | Description |
 |---|---|---|
@@ -721,7 +736,7 @@ suspend fun copy(source: Source, sink: Sink) {
 
 #### `ApiDependency`
 
-An api() dependency leaks into every consumer. Only a dependency the script exports to the iOS framework needs it.
+An api() dependency leaks into every consumer. Only a dependency the script exports to the iOS framework needs it. Inactive by default.
 
 No options.
 
@@ -758,7 +773,7 @@ kotlin {
 
 #### `GradleDeclarationOrder`
 
-Plugins, source set dependency blocks and dependencies of a build script are sorted, so a reader finds a declaration at once.
+Plugins, source set dependency blocks and dependencies of a build script are sorted, so a reader finds a declaration at once. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -1074,7 +1089,7 @@ fun label(event: Event): String =
 
 #### `TypeCast`
 
-A type cast skips the compiler type check. Use a smart cast or a typed API instead.
+A type cast skips the compiler type check. Use a smart cast or a typed API instead. Inactive by default.
 
 No options.
 
@@ -1099,7 +1114,7 @@ fun length(value: Any): Int =
 
 #### `ComplexAssertion`
 
-A call or an object creation must not be embedded into an assertion. An assertion accepts variables and literals only.
+A call or an object creation must not be embedded into an assertion. An assertion accepts variables and literals only. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -1139,7 +1154,7 @@ fun `a test`() {
 
 #### `ExceptionMessageAssertion`
 
-A unit test must not read the message of an exception. An exception message is not a contract.
+A unit test must not read the message of an exception. An exception message is not a contract. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -1170,7 +1185,7 @@ fun `a test`() {
 
 #### `HelperFunctionInTest`
 
-A test class and its file must hold no helper functions, only test lifecycle functions.
+A test class and its file must hold no helper functions, only test lifecycle functions. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -1218,7 +1233,7 @@ class StoreTest {
 
 #### `IncorrectUnitTestFormat`
 
-A unit test body must be separated by empty lines into an optional arrange block, an act block and a final assert block.
+A unit test body must be separated by empty lines into an optional arrange block, an act block and a final assert block. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -1266,7 +1281,7 @@ fun `a test`() = runTest {
 
 #### `MisplacedAssertion`
 
-An assertion is only allowed in the final assert block of a unit test body. No other call is allowed in that block.
+An assertion is only allowed in the final assert block of a unit test body. No other call is allowed in that block. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -1308,7 +1323,7 @@ fun `a test`() {
 
 #### `MissingSubjectUnderTest`
 
-The subject of a unit test must be named after the configured subject name, and the act block must use it.
+The subject of a unit test must be named after the configured subject name, and the act block must use it. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -1362,7 +1377,7 @@ fun `a test`() {
 
 #### `MultipleAssertions`
 
-The final assert block of a unit test must contain exactly one assertion. Compare the result with one expected value, or group the related checks in one assertion call.
+The final assert block of a unit test must contain exactly one assertion. Compare the result with one expected value, or group the related checks in one assertion call. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|
@@ -1406,7 +1421,7 @@ fun `a test`() {
 
 #### `PreviewInTest`
 
-A preview class or function shows sample data for the IDE and can change at any time. Tests must use fakes that they own.
+A preview class or function shows sample data for the IDE and can change at any time. Tests must use fakes that they own. Inactive by default.
 
 | Option | Default | Description |
 |---|---|---|

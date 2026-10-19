@@ -1,0 +1,41 @@
+overpas-compose:
+  active: true
+  AnimatedContentTargetIgnored:
+    active: false
+    contentSwitchCalls: ['AnimatedContent', 'Crossfade']
+  CallerModifierNotFirst:
+    active: false
+    composableAnnotations: ['Composable']
+    modifierName: 'modifier'
+  FalseStabilityPromise:
+    active: false
+    immutableAnnotations: ['Immutable']
+    stableAnnotations: ['Stable']
+    collectionTypes: ['MutableList', 'MutableSet', 'MutableMap', 'MutableCollection', 'ArrayList', 'HashSet', 'HashMap', 'LinkedHashSet', 'LinkedHashMap']
+    collectionFactories: ['mutableListOf', 'mutableSetOf', 'mutableMapOf', 'arrayListOf', 'hashSetOf', 'hashMapOf', 'linkedSetOf', 'linkedMapOf', 'toMutableList', 'toMutableSet', 'toMutableMap', 'ArrayList', 'HashSet', 'HashMap', 'LinkedHashSet', 'LinkedHashMap']
+  LowLevelUiPrimitive:
+    active: false
+    forbiddenImports: ['androidx.compose.ui.graphics.*', 'androidx.compose.ui.draw.*', 'androidx.compose.foundation.Canvas', 'androidx.compose.foundation.background', 'androidx.compose.foundation.border', 'androidx.compose.foundation.shape.*', 'androidx.compose.ui.text.TextStyle', 'androidx.compose.ui.text.font.*', 'androidx.compose.ui.text.style.*', 'androidx.compose.ui.unit.dp', 'androidx.compose.ui.unit.sp', 'androidx.compose.ui.unit.em', 'androidx.compose.ui.layout.*', 'androidx.compose.animation.core.*', 'androidx.compose.animation.fade*', 'androidx.compose.animation.slide*', 'androidx.compose.animation.expand*', 'androidx.compose.animation.shrink*', 'androidx.compose.animation.scale*']
+    allowedImports: ['androidx.compose.ui.graphics.vector.ImageVector', 'androidx.compose.ui.graphics.painter.Painter']
+  ModifierChainWrapping:
+    active: false
+    chainStarts: ['Modifier', 'modifier']
+    minCallCount: 3
+  MutableCollectionInMutableState:
+    active: false
+    stateFactories: ['mutableStateOf']
+    collectionFactories: ['mutableListOf', 'mutableSetOf', 'mutableMapOf', 'arrayListOf', 'hashSetOf', 'hashMapOf', 'linkedSetOf', 'linkedMapOf', 'toMutableList', 'toMutableSet', 'toMutableMap', 'ArrayList', 'HashSet', 'HashMap', 'LinkedHashSet', 'LinkedHashMap']
+    collectionTypes: ['MutableList', 'MutableSet', 'MutableMap', 'MutableCollection', 'ArrayList', 'HashSet', 'HashMap', 'LinkedHashSet', 'LinkedHashMap']
+  PresentationEntityPassedDown:
+    active: true
+    composableAnnotations: ['Composable']
+    entitySuffixes: ['Component', 'ViewModel', 'Presenter', 'StateHolder', 'Store', 'ScreenModel']
+    entityTypes: ['androidx.lifecycle.ViewModel', 'com.arkivanov.decompose.ComponentContext', 'com.arkivanov.mvikotlin.core.store.Store', 'cafe.adriel.voyager.core.model.ScreenModel']
+    excludedTypes: ['java.awt.Component', 'androidx.compose.runtime.saveable.SaveableStateHolder', 'androidx.lifecycle.ViewModelStore', 'androidx.datastore.core.DataStore']
+  RequestFocusInComposition:
+    active: false
+    composableAnnotations: ['Composable']
+    effectCalls: ['LaunchedEffect', 'DisposableEffect', 'SideEffect']
+  ReturnInComposable:
+    active: false
+    composableAnnotations: ['Composable']

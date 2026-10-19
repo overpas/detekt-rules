@@ -1,0 +1,19 @@
+overpas-coroutines:
+  active: true
+  LaunchInInitializer:
+    active: true
+    launchCalls: ['launch', 'async', 'launchIn']
+  RunBlockingOutsideMain:
+    active: true
+    allowedFunctions: ['main']
+  SharingInFunction:
+    active: true
+    sharingCalls: ['stateIn', 'shareIn']
+  StoredCoroutineScope:
+    active: true
+    scopeTypes: ['CoroutineScope']
+    scopeFactories: ['CoroutineScope', 'MainScope']
+    allowedClasses: []
+  TryInCoroutineFunction:
+    active: true
+    scopeTypes: ['kotlinx.coroutines.CoroutineScope']

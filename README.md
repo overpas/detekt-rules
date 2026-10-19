@@ -1000,6 +1000,47 @@ interface UserRepository {
 }
 ```
 
+#### `SetupWithoutApply`
+
+Many uses of a new object right after its creation repeat its name. Configure the object in an apply block instead.
+
+The rule checks a local `val` or `var` that a constructor call creates. A use is a property assignment or a method call on the object, as a separate statement. The rule counts the uses that directly follow the creation. The rule does not report the object when the same block keeps the result of a method of the object, for example `val request = builder.build()`.
+
+| Option | Default | Description |
+|---|---|---|
+| `minUseCount` | `2` | Minimum count of the consecutive uses of the object after its creation |
+
+Fails:
+
+```kotlin
+fun create(): SomeObject {
+    val obj = SomeObject()
+    obj.prop1 = true
+    obj.prop2 = "prop2"
+    obj.doSmth()
+    return obj
+}
+```
+
+Passes:
+
+```kotlin
+fun create(): SomeObject =
+    SomeObject().apply {
+        prop1 = true
+        prop2 = "prop2"
+        doSmth()
+    }
+
+fun request(): Request {
+    val builder = Builder()
+    builder.setName("name")
+    builder.setAge(1)
+    val request = builder.build()
+    return request
+}
+```
+
 #### `SubjectlessWhenOnOneValue`
 
 A subjectless when that tests one value in each branch hides the classified value. Use when with a subject instead.

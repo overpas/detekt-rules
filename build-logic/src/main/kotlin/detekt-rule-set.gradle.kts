@@ -1,4 +1,5 @@
 import org.gradle.accessors.dm.LibrariesForLibs
+import java.util.zip.ZipFile
 
 plugins {
     id("code-coverage")
@@ -35,4 +36,22 @@ tasks.shadowJar {
             "Implementation-Version" to archiveVersion.get(),
         )
     }
+}
+
+val verifyDefaultConfig by tasks.registering {
+    group = "verification"
+    description = "Checks that the rule set jar contains the default config."
+    val jar = tasks.shadowJar.flatMap { it.archiveFile }
+    inputs.file(jar)
+    doLast {
+        ZipFile(jar.get().asFile).use { zip ->
+            check(zip.getEntry("config/config.yml") != null) {
+                "${jar.get().asFile.name} does not contain config/config.yml"
+            }
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(verifyDefaultConfig)
 }

@@ -1,0 +1,7 @@
+overpas-gradle:
+  active: true
+  ApiDependency:
+    active: false
+  GradleDeclarationOrder:
+    active: false
+    testLibraries: ['androidx.compose.ui.test', 'androidx.espresso', 'androidx.test', 'compose.ui.test', 'detekt.test', 'junit', 'kotlin.test', 'kotlinx.coroutines.test', 'robolectric']

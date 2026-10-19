@@ -1,0 +1,34 @@
+overpas-testing:
+  active: true
+  ComplexAssertion:
+    active: false
+    testAnnotations: ['Test']
+    assertionPrefixes: ['assert', 'verify', 'fail']
+  ExceptionMessageAssertion:
+    active: false
+    testAnnotations: ['Test']
+    exceptionAccessors: ['message', 'localizedMessage', 'stackTraceToString']
+  HelperFunctionInTest:
+    active: false
+    testAnnotations: ['Test']
+    lifecycleAnnotations: ['Test', 'BeforeTest', 'AfterTest', 'Before', 'After', 'BeforeClass', 'AfterClass', 'BeforeEach', 'AfterEach', 'BeforeAll', 'AfterAll']
+  IncorrectUnitTestFormat:
+    active: false
+    testAnnotations: ['Test']
+    assertionPrefixes: ['assert', 'verify', 'fail']
+  MisplacedAssertion:
+    active: false
+    testAnnotations: ['Test']
+    assertionPrefixes: ['assert', 'verify', 'fail']
+  MissingSubjectUnderTest:
+    active: false
+    testAnnotations: ['Test']
+    assertionPrefixes: ['assert', 'verify', 'fail']
+    subjectName: 'sut'
+  MultipleAssertions:
+    active: false
+    testAnnotations: ['Test']
+    assertionPrefixes: ['assert', 'verify', 'fail']
+  PreviewInTest:
+    active: false
+    namePattern: '[Pp]review'

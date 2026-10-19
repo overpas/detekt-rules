@@ -1,0 +1,29 @@
+overpas-style:
+  active: true
+  ExpressionBodyOnNewLine:
+    active: true
+  FileStructure:
+    active: true
+  ForwardedParameter:
+    active: true
+    allowedTypes: ['Int', 'Long', 'Short', 'Byte', 'Float', 'Double', 'Boolean', 'Char', 'String', 'UInt', 'ULong', 'UShort', 'UByte']
+    composableAnnotations: ['Composable']
+    areOverloadsIgnored: true
+    allowedCalls: ['with', 'run', 'let', 'also', 'apply', 'takeIf', 'takeUnless', 'contract', 'callsInPlace', 'returns', 'returnsNotNull', 'implies', 'require', 'requireNotNull', 'check', 'checkNotNull', 'error', 'assert', 'listOf', 'listOfNotNull', 'mutableListOf', 'setOf', 'mutableSetOf', 'mapOf', 'mutableMapOf', 'arrayOf', 'sequenceOf', 'zip', 'plus', 'minus', 'contains', 'containsAll', 'containsKey', 'containsValue', 'indexOf', 'lastIndexOf', 'getOrElse', 'getOrDefault', 'getOrPut', 'union', 'intersect', 'subtract', 'add', 'addAll', 'remove', 'removeAll', 'retainAll', 'put', 'putAll', 'joinTo', 'toCollection']
+  LinearContainsCheck:
+    active: true
+    linearTypes: ['List', 'MutableList', 'ArrayList', 'LinkedList', 'Array']
+    linearFactories: ['listOf', 'listOfNotNull', 'mutableListOf', 'arrayListOf', 'emptyList', 'buildList', 'arrayOf', 'emptyArray', 'arrayOfNulls', 'asList', 'toList', 'toMutableList', 'toTypedArray']
+  MutableVariable:
+    active: true
+    composableAnnotations: ['Composable']
+  RedundantFunctionName:
+    active: true
+    ignoredWords: ['And', 'At', 'By', 'For', 'From', 'In', 'Of', 'On', 'Or', 'To', 'With']
+  SetupWithoutApply:
+    active: true
+    minUseCount: 2
+  SubjectlessWhenOnOneValue:
+    active: true
+  TypeCast:
+    active: false

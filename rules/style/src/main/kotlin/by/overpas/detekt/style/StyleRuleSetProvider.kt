@@ -18,6 +18,7 @@ class StyleRuleSetProvider : RuleSetProvider {
                 ::LinearContainsCheck,
                 ::MutableVariable,
                 ::RedundantFunctionName,
+                ::SetupWithoutApply,
                 ::SubjectlessWhenOnOneValue,
                 ::TypeCast,
             ),

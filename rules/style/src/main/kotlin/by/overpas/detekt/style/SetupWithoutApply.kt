@@ -34,7 +34,7 @@ class SetupWithoutApply(config: Config) :
             return
         }
         val setup = ObjectSetup(name, block.statements.dropWhile { it != property }.drop(1))
-        if (!setup.isResultKept() && setup.useCount() >= minUseCount) {
+        if (setup.useCount() >= minUseCount) {
             report(Finding(Entity.from(property), "Configure `$name` in an apply block."))
         }
     }
@@ -45,24 +45,15 @@ class SetupWithoutApply(config: Config) :
     ) {
 
         fun useCount(): Int =
-            statements.takeWhile { it.isUse() }.size
-
-        fun isResultKept(): Boolean =
-            statements.any { statement ->
-                val value = when (statement) {
-                    is KtProperty -> statement.initializer
-                    is KtBinaryExpression if statement.operationToken == KtTokens.EQ -> statement.right
-                    else -> null
+            statements
+                .takeWhile { statement ->
+                    if (statement is KtBinaryExpression) {
+                        statement.operationToken in KtTokens.ALL_ASSIGNMENTS && statement.left.objectSelector() != null
+                    } else {
+                        statement.objectSelector() is KtCallExpression
+                    }
                 }
-                value.objectSelector() is KtCallExpression
-            }
-
-        private fun KtExpression.isUse(): Boolean =
-            if (this is KtBinaryExpression) {
-                operationToken in KtTokens.ALL_ASSIGNMENTS && left.objectSelector() != null
-            } else {
-                objectSelector() is KtCallExpression
-            }
+                .size
 
         private fun KtExpression?.objectSelector(): KtExpression? =
             (this as? KtDotQualifiedExpression)

@@ -1004,7 +1004,7 @@ interface UserRepository {
 
 Many uses of a new object right after its creation repeat its name. Configure the object in an apply block instead.
 
-The rule checks a local `val` or `var` that a constructor call creates. A use is a property assignment or a method call on the object, as a separate statement. The rule counts the uses that directly follow the creation. The rule does not report the object when the same block keeps the result of a method of the object, for example `val request = builder.build()`.
+The rule checks a local `val` or `var` that a constructor call creates. A use is a property assignment or a method call on the object, as a separate statement. The rule counts the uses that directly follow the creation. A method call whose result goes into a variable, for example `val request = builder.build()`, is not a use and ends the count.
 
 | Option | Default | Description |
 |---|---|---|
@@ -1033,9 +1033,10 @@ fun create(): SomeObject =
     }
 
 fun request(): Request {
-    val builder = Builder()
-    builder.setName("name")
-    builder.setAge(1)
+    val builder = Builder().apply {
+        setName("name")
+        setAge(1)
+    }
     val request = builder.build()
     return request
 }

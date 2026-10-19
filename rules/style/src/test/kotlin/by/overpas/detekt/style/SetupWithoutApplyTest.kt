@@ -110,7 +110,7 @@ class SetupWithoutApplyTest {
     }
 
     @Test
-    fun `a call result kept in a local passes`() {
+    fun `calls before a call result kept in a local are reported`() {
         val code = """
             fun create(): Request {
                 val builder = Builder()
@@ -123,18 +123,17 @@ class SetupWithoutApplyTest {
 
         val findings = sut.lint(code)
 
-        assertEquals(0, findings.size)
+        assertEquals(1, findings.size)
     }
 
     @Test
-    fun `a call result kept in a local after other statements passes`() {
+    fun `a call result kept in a local is not a use`() {
         val code = """
             fun create(): Request {
                 val builder = Builder()
                 builder.setName("name")
-                builder.setAge(1)
-                log("configured")
                 val request = builder.build()
+                builder.setAge(1)
                 return request
             }
         """.trimIndent()
@@ -145,14 +144,14 @@ class SetupWithoutApplyTest {
     }
 
     @Test
-    fun `a call result assigned to an existing variable passes`() {
+    fun `a call result assigned to an existing variable is not a use`() {
         val code = """
             fun create(): Request {
                 var request = Request.EMPTY
                 val builder = Builder()
                 builder.setName("name")
-                builder.setAge(1)
                 request = builder.build()
+                builder.setAge(1)
                 return request
             }
         """.trimIndent()

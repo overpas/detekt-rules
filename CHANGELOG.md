@@ -3,6 +3,26 @@
 All notable changes are documented in this file. The project uses
 [Semantic Versioning](https://semver.org).
 
+## 0.7.1
+
+### Distribution
+
+- Each rule set jar contains a default config (`config/config.yml`) that lists every rule with
+  the default values of its options. To use it, set `buildUponDefaultConfig = true` in the
+  `detekt` block, and put only your changes in the project detekt config. With the default
+  config, these rules are inactive and all other rules are active:
+  - `overpas-compose`: `AnimatedContentTargetIgnored`, `CallerModifierNotFirst`,
+    `FalseStabilityPromise`, `LowLevelUiPrimitive`, `ModifierChainWrapping`,
+    `MutableCollectionInMutableState`, `RequestFocusInComposition`, `ReturnInComposable`
+  - `overpas-gradle`: `ApiDependency`, `GradleDeclarationOrder`
+  - `overpas-style`: `TypeCast`
+  - `overpas-testing`: `ComplexAssertion`, `ExceptionMessageAssertion`, `HelperFunctionInTest`,
+    `IncorrectUnitTestFormat`, `MisplacedAssertion`, `MissingSubjectUnderTest`,
+    `MultipleAssertions`, `PreviewInTest`
+
+  Without `buildUponDefaultConfig = true`, detekt does not use the default config, and the rules
+  work as before.
+
 ## 0.7.0
 
 ### Added rules

@@ -3,6 +3,16 @@
 All notable changes are documented in this file. The project uses
 [Semantic Versioning](https://semver.org).
 
+## 0.7.0
+
+### Added rules
+
+- `overpas-style`: `SetupWithoutApply` reports a local `val` or `var` that a constructor call
+  creates when the statements right after it use the object by its name, such as `obj.prop = 1`
+  or `obj.doSmth()`. Configure the object in an `apply` block instead. A method call whose result
+  goes into a variable, such as `val request = builder.build()`, ends the uses. Set `minUseCount`
+  to change the minimum count of the uses, `2` by default.
+
 ## 0.6.1
 
 ### Changed options and defaults

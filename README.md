@@ -35,6 +35,8 @@ Configure the rules under their rule set ids in the detekt config. [Rules](#rule
 of each rule. `HiddenAbstraction`, `LowCohesion`, `RepeatedCollaboratorType`, `PresentationEntityPassedDown` and `TryInCoroutineFunction` need type resolution, so configure
 them in the config of the type resolution tasks (see `config/detekt/detekt-type-resolution.yml`).
 
+## Troubleshooting
+
 To upgrade, delete the old jars in the same change, so that two versions are never on the plugin
 classpath. Stop the Gradle daemon (`./gradlew --stop`) after a jar change, because the daemon might cache
 the old plugin classes.

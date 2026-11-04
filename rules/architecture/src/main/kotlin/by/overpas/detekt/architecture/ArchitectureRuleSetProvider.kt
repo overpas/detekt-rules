@@ -12,6 +12,7 @@ class ArchitectureRuleSetProvider : RuleSetProvider {
         RuleSet(
             ruleSetId,
             listOf(
+                ::CatchWithoutResultType,
                 ::HiddenAbstraction,
                 ::LowCohesion,
                 ::NonInjectedDependency,

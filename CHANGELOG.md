@@ -3,6 +3,20 @@
 All notable changes are documented in this file. The project uses
 [Semantic Versioning](https://semver.org).
 
+## 0.8.0
+
+### Added rules
+
+- `overpas-architecture`: `CatchWithoutResultType` reports a named function with a `try` and a
+  `catch` when the function does not return `kotlin.Result` or a custom result type: an enum, a
+  sealed interface or a sealed class. All other return types are violations, such as nullable
+  types, a type parameter, `Unit`, collections and a subclass of a sealed type. A `catch` that
+  throws again is also a violation. A `try` inside a lambda or an anonymous function counts for
+  the enclosing named function, and a local function has its own check. The rule does not check
+  `try`/`finally` without a `catch`, `runCatching`, Flow `catch`, or a `try` outside a named
+  function. The rule has no options, is inactive by default and needs type resolution, so the
+  plain `detekt` task skips it.
+
 ## 0.7.1
 
 ### Distribution

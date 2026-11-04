@@ -62,6 +62,8 @@ exceptions:
     ignoreLabeled: false
 
 overpas-architecture:
+  CatchWithoutResultType:
+    active: true
   HiddenAbstraction:
     active: true
     severity: 'warning'

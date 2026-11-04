@@ -61,6 +61,67 @@ marked "Inactive by default" are inactive. All other rules are active.
 
 ### `overpas-architecture`
 
+#### `CatchWithoutResultType`
+
+A function with a `try` and a `catch` must return `kotlin.Result` or a custom result type: an enum, a sealed interface or a sealed class. An unexpected exception must fail fast. Inactive by default. Needs type resolution, so the plain `detekt` task skips it.
+
+The rule reports the named function around the `catch`, once for each function. A `try` inside a lambda or an anonymous function counts for the enclosing named function. A local function has its own check. All other return types are violations: nullable types, a type parameter, `Unit`, collections and a subclass of a sealed type. A `catch` that throws again is also a violation. The rule does not check `try`/`finally` without a `catch`, `runCatching`, Flow `catch`, or a `try` outside a named function, for example in a property getter.
+
+No options.
+
+Fails:
+
+```kotlin
+fun decode(bytes: ByteArray): String? {
+    return try {
+        reader.read(bytes)
+    } catch (_: ReaderException) {
+        null
+    } finally {
+        reader.reset()
+    }
+}
+
+fun <T> await(task: Task<T>): T {
+    return try {
+        task.get()
+    } catch (e: ExecutionException) {
+        throw e.cause ?: e
+    }
+}
+```
+
+Passes:
+
+```kotlin
+fun <T> await(task: Task<T>): Result<T> {
+    return try {
+        Result.success(task.get())
+    } catch (e: ExecutionException) {
+        Result.failure(e.cause ?: e)
+    }
+}
+
+fun parse(text: String): ParseResult {
+    val payload = text.takeIf(String::isNotEmpty)?.let { data ->
+        try {
+            decode(data)
+        } catch (_: IllegalArgumentException) {
+            null
+        }
+    }
+    return payload?.let(ParseResult::Success) ?: ParseResult.Invalid
+}
+
+fun load(): Data {
+    try {
+        return reader.read()
+    } finally {
+        reader.close()
+    }
+}
+```
+
 #### `HiddenAbstraction`
 
 A class, an interface, an object or a file must not have more helper functions than entry points. Many helper functions that call each other show a hidden abstraction. Put the helpers behind a new abstraction, or move them to the types that they use. Needs type resolution, so the plain `detekt` task skips it.

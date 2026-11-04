@@ -1,5 +1,7 @@
 overpas-architecture:
   active: true
+  CatchWithoutResultType:
+    active: false
   HiddenAbstraction:
     active: true
   LowCohesion:

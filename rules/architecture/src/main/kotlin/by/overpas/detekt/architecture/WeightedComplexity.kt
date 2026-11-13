@@ -23,13 +23,13 @@ class WeightedComplexity(config: Config) :
     ) {
 
     @Configuration("maximum weighted complexity of a class")
-    private val classLimit: Int by config(150)
+    private val classLimit: Int by config(100)
 
     @Configuration("maximum weighted complexity of a file")
-    private val fileLimit: Int by config(155)
+    private val fileLimit: Int by config(150)
 
     @Configuration("maximum weighted complexity of a class in the test sources")
-    private val testClassLimit: Int by config(555)
+    private val testClassLimit: Int by config(550)
 
     @Configuration("maximum weighted complexity of a file in the test sources")
     private val testFileLimit: Int by config(600)

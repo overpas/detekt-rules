@@ -310,9 +310,9 @@ The rule reports each class and each file over a limit. The message shows the sc
 
 | Option | Default | Description |
 |---|---|---|
-| `classLimit` | `150` | Maximum weighted complexity of a class |
-| `fileLimit` | `155` | Maximum weighted complexity of a file |
-| `testClassLimit` | `555` | Maximum weighted complexity of a class in the test sources |
+| `classLimit` | `100` | Maximum weighted complexity of a class |
+| `fileLimit` | `150` | Maximum weighted complexity of a file |
+| `testClassLimit` | `550` | Maximum weighted complexity of a class in the test sources |
 | `testFileLimit` | `600` | Maximum weighted complexity of a file in the test sources |
 | `composableClassLimit` | `5` | Maximum weighted complexity of the composable functions and getters of a class |
 | `composableFileLimit` | `410` | Maximum weighted complexity of the composable functions and getters of a file |

@@ -21,9 +21,9 @@ overpas-architecture:
   WeightedComplexity:
     active: true
     excludes: ['**/build/**', '**/generated/**']
-    classLimit: 150
-    fileLimit: 155
-    testClassLimit: 555
+    classLimit: 100
+    fileLimit: 150
+    testClassLimit: 550
     testFileLimit: 600
     composableClassLimit: 5
     composableFileLimit: 410

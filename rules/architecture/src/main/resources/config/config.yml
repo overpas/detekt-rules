@@ -18,3 +18,22 @@ overpas-architecture:
     excludedTypes: ['kotlin.Boolean', 'kotlin.Char', 'kotlin.Number', 'kotlin.UByte', 'kotlin.UShort', 'kotlin.UInt', 'kotlin.ULong', 'kotlin.CharSequence', 'kotlin.collections.Iterable', 'kotlin.collections.Map', 'kotlin.Array', 'kotlin.BooleanArray', 'kotlin.CharArray', 'kotlin.ByteArray', 'kotlin.ShortArray', 'kotlin.IntArray', 'kotlin.LongArray', 'kotlin.FloatArray', 'kotlin.DoubleArray', 'kotlin.sequences.Sequence', 'kotlin.Function', 'kotlin.Enum', 'kotlin.time.Duration', 'kotlin.time.Instant', 'kotlin.uuid.Uuid', 'kotlin.coroutines.CoroutineContext', 'kotlinx.coroutines.CoroutineDispatcher']
     ignoredSupertypes: ['kotlin.Any', 'kotlin.Comparable', 'java.io.Serializable']
     areDataClassesIgnored: true
+  WeightedComplexity:
+    active: true
+    excludes: ['**/build/**', '**/generated/**']
+    classLimit: 100
+    fileLimit: 150
+    testClassLimit: 550
+    testFileLimit: 600
+    composableClassLimit: 5
+    composableFileLimit: 410
+    functionLimit: 70
+    testFunctionLimit: 90
+    composableFunctionLimit: 380
+    nestWeight: 0.25
+    chainWeight: 0.1
+    minFunctionScore: 1.0
+    arePropertyTypeArgumentsCounted: true
+    nestedClassScore: 1.0
+    testSourcePatterns: ['**/src/test/**', '**/src/*Test/**']
+    composableAnnotations: ['Composable']

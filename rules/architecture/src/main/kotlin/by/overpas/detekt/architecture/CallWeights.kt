@@ -25,13 +25,14 @@ import org.jetbrains.kotlin.psi.KtWhenEntry
 import org.jetbrains.kotlin.psi.KtWhileExpressionBase
 
 internal class CallWeights private constructor(
+    private val scoring: Scoring,
     private val nest: Int,
     private val weights: MutableList<Double>,
 ) : KtTreeVisitorVoid() {
 
     override fun visitExpression(expression: KtExpression) {
         if (expression.isCall()) {
-            weights += 1 + NEST_WEIGHT * nest + CHAIN_WEIGHT * expression.chainLength()
+            weights += 1 + scoring.nestWeight * nest + scoring.chainWeight * expression.chainLength()
         }
         super.visitExpression(expression)
     }
@@ -92,7 +93,7 @@ internal class CallWeights private constructor(
         Unit
 
     private fun KtElement?.acceptDeeper() {
-        this?.accept(CallWeights(nest + 1, weights))
+        this?.accept(CallWeights(scoring, nest + 1, weights))
     }
 
     private fun KtExpression.isCall(): Boolean =
@@ -129,14 +130,14 @@ internal class CallWeights private constructor(
 
     companion object {
 
-        private const val NEST_WEIGHT = 0.25
-        private const val CHAIN_WEIGHT = 0.1
-
         private val nonCallOperators: Set<IElementType> = setOf(KtTokens.EQ, KtTokens.EQEQEQ, KtTokens.EXCLEQEQEQ)
 
-        fun total(element: KtElement): Double =
+        fun total(
+            element: KtElement,
+            scoring: Scoring,
+        ): Double =
             mutableListOf<Double>()
-                .also { element.accept(CallWeights(0, it)) }
+                .also { element.accept(CallWeights(scoring, 0, it)) }
                 .sum()
     }
 }

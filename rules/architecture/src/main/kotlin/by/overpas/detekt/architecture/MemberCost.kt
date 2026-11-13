@@ -9,11 +9,15 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
+import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import kotlin.math.max
 import kotlin.math.sqrt
 
-internal class MemberCost(private val composableAnnotations: Set<String>) {
+internal class MemberCost(
+    private val composableAnnotations: Set<String>,
+    private val scoring: Scoring,
+) {
 
     fun ofDeclaration(declaration: KtDeclaration): Part? =
         when (declaration) {
@@ -41,14 +45,20 @@ internal class MemberCost(private val composableAnnotations: Set<String>) {
         }
 
     fun ofParameter(parameter: KtParameter): Part =
-        Part(parameter.nameAsSafeName.asString(), TypeNodes.count(parameter.typeReference?.typeElement).toDouble(), 0.0)
+        Part(parameter.nameAsSafeName.asString(), parameter.typeReference.typeScore(), 0.0)
+
+    fun ofNestedClass(name: String): Part =
+        Part(name, scoring.nestedClassScore, 0.0)
 
     private fun KtElement.functionScore(parameters: Int): Double =
-        max(1.0, sqrt(parameters.toDouble())) * (1 + CallWeights.total(this))
+        max(1.0, sqrt(parameters.toDouble())) * (scoring.minFunctionScore + CallWeights.total(this, scoring))
+
+    private fun KtTypeReference?.typeScore(): Double =
+        if (scoring.arePropertyTypeArgumentsCounted) TypeNodes.count(this?.typeElement).toDouble() else 1.0
 
     private fun KtProperty.propertyScore(): Double {
         val isAbstract = hasModifier(KtTokens.ABSTRACT_KEYWORD) ||
             (containingClass()?.isInterface() == true && getter?.hasBody() != true)
-        return if (isAbstract) 1.0 else TypeNodes.count(typeReference?.typeElement) + CallWeights.total(this)
+        return if (isAbstract) 1.0 else typeReference.typeScore() + CallWeights.total(this, scoring)
     }
 }

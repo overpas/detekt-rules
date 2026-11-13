@@ -12,7 +12,7 @@ internal interface ScoredParts {
 
 internal class ClassParts(
     private val classOrObject: KtClassOrObject,
-    cost: MemberCost,
+    private val cost: MemberCost,
 ) : ScoredParts {
 
     private val nested: List<ClassParts> =
@@ -35,7 +35,7 @@ internal class ClassParts(
         Part(name, members + nested.map { it.flat() })
 
     private fun asNested(): Part =
-        if (classOrObject is KtClass && classOrObject.isInner()) Part(name, parts) else Part(name, 1.0, 0.0)
+        if (classOrObject is KtClass && classOrObject.isInner()) Part(name, parts) else cost.ofNestedClass(name)
 }
 
 internal class FileParts(

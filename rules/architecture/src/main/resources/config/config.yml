@@ -27,5 +27,10 @@ overpas-architecture:
     testFileLimit: 600
     composableClassLimit: 5
     composableFileLimit: 410
+    nestWeight: 0.25
+    chainWeight: 0.1
+    minFunctionScore: 1.0
+    arePropertyTypeArgumentsCounted: true
+    nestedClassScore: 1.0
     testSourcePatterns: ['**/src/test/**', '**/src/*Test/**']
     composableAnnotations: ['Composable']

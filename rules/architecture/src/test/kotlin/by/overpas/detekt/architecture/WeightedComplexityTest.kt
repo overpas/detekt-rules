@@ -9,6 +9,7 @@ import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 
 class WeightedComplexityTest {
 
@@ -502,5 +503,137 @@ class WeightedComplexityTest {
         val findings = sut.lint(code)
 
         assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `nestWeight sets the weight of each level of nesting`() {
+        val sut = WeightedComplexity(TestConfig("classLimit" to 0, "nestWeight" to 0.5))
+        val code = """
+            class Printer {
+                fun print(flag: Boolean) {
+                    if (flag) println("a")
+                }
+            }
+        """.trimIndent()
+        val expected = listOf(
+            "`Printer` has a weighted complexity of 2.5 (limit 0.0, normal bucket). Largest parts: `print()` 2.5.",
+        )
+
+        val messages = sut.lint(code).map(Finding::message)
+
+        assertEquals(expected, messages)
+    }
+
+    @Test
+    fun `chainWeight sets the weight of each earlier call in a chain`() {
+        val sut = WeightedComplexity(TestConfig("classLimit" to 0, "chainWeight" to 0.5))
+        val code = """
+            class Names {
+                fun join(items: List<String>): String = items.map { it }.joinToString("")
+            }
+        """.trimIndent()
+        val expected = listOf(
+            "`Names` has a weighted complexity of 3.5 (limit 0.0, normal bucket). Largest parts: `join()` 3.5.",
+        )
+
+        val messages = sut.lint(code).map(Finding::message)
+
+        assertEquals(expected, messages)
+    }
+
+    @Test
+    fun `minFunctionScore sets the score of a function without calls`() {
+        val sut = WeightedComplexity(TestConfig("classLimit" to 0, "minFunctionScore" to 2))
+        val code = """
+            class Greeter {
+                fun nothing() {}
+                fun greet() {
+                    println("a")
+                }
+            }
+        """.trimIndent()
+        val expected = listOf(
+            "`Greeter` has a weighted complexity of 5.0 (limit 0.0, normal bucket). " +
+                "Largest parts: `greet()` 3.0, `nothing()` 2.0.",
+        )
+
+        val messages = sut.lint(code).map(Finding::message)
+
+        assertEquals(expected, messages)
+    }
+
+    @Test
+    fun `a property type costs one if arePropertyTypeArgumentsCounted is false`() {
+        val sut = WeightedComplexity(TestConfig("classLimit" to 0, "arePropertyTypeArgumentsCounted" to false))
+        val code = """
+            class Store(val tags: Set<String>) {
+                val index: Map<String, List<Int>> = emptyMap()
+                val handler: (String) -> Unit = {}
+            }
+        """.trimIndent()
+        val expected = listOf(
+            "`Store` has a weighted complexity of 4.0 (limit 0.0, normal bucket). " +
+                "Largest parts: `index` 2.0, `tags` 1.0, `handler` 1.0.",
+        )
+
+        val messages = sut.lint(code).map(Finding::message)
+
+        assertEquals(expected, messages)
+    }
+
+    @Test
+    fun `nestedClassScore sets what a nested class adds to its parent`() {
+        val sut = WeightedComplexity(TestConfig("classLimit" to 0, "nestedClassScore" to 2.5))
+        val code = """
+            class Outer {
+                fun run() {}
+
+                class Nested {
+                    fun print() {}
+                }
+            }
+        """.trimIndent()
+        val expected = listOf(
+            "`Nested` has a weighted complexity of 1.0 (limit 0.0, normal bucket). Largest parts: `print()` 1.0.",
+            "`Outer` has a weighted complexity of 3.5 (limit 0.0, normal bucket). " +
+                "Largest parts: `Nested` 2.5, `run()` 1.0.",
+        )
+
+        val messages = sut.lint(code).map(Finding::message)
+
+        assertEquals(expected, messages)
+    }
+
+    @Test
+    fun `a decimal option accepts a quoted number`() {
+        val sut = WeightedComplexity(TestConfig("classLimit" to 0, "nestWeight" to "0.5"))
+        val code = """
+            class Printer {
+                fun print(flag: Boolean) {
+                    if (flag) println("a")
+                }
+            }
+        """.trimIndent()
+        val expected = listOf(
+            "`Printer` has a weighted complexity of 2.5 (limit 0.0, normal bucket). Largest parts: `print()` 2.5.",
+        )
+
+        val messages = sut.lint(code).map(Finding::message)
+
+        assertEquals(expected, messages)
+    }
+
+    @Test
+    fun `a decimal option that is not a number fails`() {
+        val sut = WeightedComplexity(TestConfig("classLimit" to 0, "nestWeight" to "high"))
+        val code = """
+            class Greeter {
+                fun greet() {}
+            }
+        """.trimIndent()
+
+        val failure = runCatching { sut.lint(code) }.exceptionOrNull()
+
+        assertIs<IllegalStateException>(failure)
     }
 }

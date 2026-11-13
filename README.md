@@ -289,19 +289,21 @@ A class or a file must not be too complex. The rule adds a weight for each prope
 The rule uses a weighted sum of the members, similar to the WMC metric:
 
 ```
-w(call)  = 1 + 0.25 · nest + 0.1 · chain
-F(fun)   = max(1, √n) · (1 + Σ w)
+w(call)  = 1 + nestWeight · nest + chainWeight · chain
+F(fun)   = max(1, √n) · (minFunctionScore + Σ w)
 P(prop)  = T(type) + Σ w
-S(class) = Σ P + Σ F + Σ S(inner class) + 1 for each nested class
+S(class) = Σ P + Σ F + Σ S(inner class) + nestedClassScore for each nested class
 S(file)  = Σ P + Σ F of all members of all classes and of the top level
 ```
+
+With the defaults: `w(call) = 1 + 0.25 · nest + 0.1 · chain`, `F(fun) = max(1, √n) · (1 + Σ w)` and each nested class adds 1.
 
 - A call is a function or constructor call, an infix call, an operator (`+`, `==`, `..`, `in`, `[]`, `!`, `++`, `+=` and the others) and also `&&`, `||` and `?:`. `=`, `!!`, `as`, `is` and `::` references are not calls.
 - `nest` is the number of `if`, `else`, `when` entry, loop, `try`, `catch`, `finally` and lambda bodies around the call. Conditions and `when` subjects stay on the outer level. `else if` adds no level.
 - `chain` is the number of calls and index accesses before the call in the same receiver chain. Properties in the chain do not count.
 - `n` is the number of value parameters. Receivers and context parameters do not count. Secondary constructors and `init` blocks are functions.
-- `T` is the number of type nodes: `String` is 1, `Map<String, List<Int>>` is 4, a function type `(A, B) -> C` is 4. A property without a written type and an abstract property are 1. The `val` and `var` parameters of a primary constructor are properties.
-- A nested class, a companion object and a nested object have their own score and add 1 to the parent. An inner class adds its full score to the parent. The calls in an object expression count for the enclosing function, one level deeper.
+- `T` is the number of type nodes: `String` is 1, `Map<String, List<Int>>` is 4, a function type `(A, B) -> C` is 4. A property without a written type and an abstract property are 1. With `arePropertyTypeArgumentsCounted: false`, each type is 1. The `val` and `var` parameters of a primary constructor are properties.
+- A nested class, a companion object and a nested object have their own score and add `nestedClassScore` to the parent. An inner class adds its full score to the parent. The calls in an object expression count for the enclosing function, one level deeper.
 - Functions and property getters with a composable annotation do not add to the normal score. They add to a separate composable score, with its own limits. Files that match `testSourcePatterns` use the test limits for the normal score.
 
 The rule reports each class and each file over a limit. The message shows the score, the limit, the bucket and the 3 largest parts. The default config excludes `**/build/**` and `**/generated/**`.
@@ -314,6 +316,11 @@ The rule reports each class and each file over a limit. The message shows the sc
 | `testFileLimit` | `600` | Maximum weighted complexity of a file in the test sources |
 | `composableClassLimit` | `5` | Maximum weighted complexity of the composable functions and getters of a class |
 | `composableFileLimit` | `410` | Maximum weighted complexity of the composable functions and getters of a file |
+| `nestWeight` | `0.25` | Weight that a call gets for each level of nesting |
+| `chainWeight` | `0.1` | Weight that a call gets for each earlier call in its chain |
+| `minFunctionScore` | `1.0` | Score of a function without calls and with at most one parameter |
+| `arePropertyTypeArgumentsCounted` | `true` | Count the type arguments and the parts of a function type in a property type. If `false`, each type is 1 |
+| `nestedClassScore` | `1.0` | Score that a nested class that is not inner adds to its parent class |
 | `testSourcePatterns` | `['**/src/test/**', '**/src/*Test/**']` | Path patterns of the test sources, which use the test limits |
 | `composableAnnotations` | `['Composable']` | Annotations that put a function or a property getter in the composable bucket |
 

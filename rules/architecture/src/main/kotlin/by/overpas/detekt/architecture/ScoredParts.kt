@@ -4,10 +4,23 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 
-internal interface ScoredParts {
-    val name: String
+private const val LISTED_PARTS = 3
+
+internal interface ScoredParts : Measured {
     val parts: List<Part>
+
+    override fun total(score: (Part) -> Double): Double =
+        parts.sumOf(score)
+
+    override fun details(score: (Part) -> Double): String =
+        parts
+            .asSequence()
+            .filter { score(it) > 0 }
+            .sortedByDescending(score)
+            .take(LISTED_PARTS)
+            .joinToString(prefix = "Largest parts: ", postfix = ".") { "`${it.name}` ${score(it).oneDecimal()}" }
 }
 
 internal class ClassParts(
@@ -57,3 +70,6 @@ internal class FileParts(
             }
         }
 }
+
+internal fun KtClassOrObject.isScored(): Boolean =
+    this !is KtEnumEntry && !(this is KtObjectDeclaration && isObjectLiteral())

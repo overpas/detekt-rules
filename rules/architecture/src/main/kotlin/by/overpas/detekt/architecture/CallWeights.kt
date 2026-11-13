@@ -132,12 +132,11 @@ internal class CallWeights private constructor(
 
         private val nonCallOperators: Set<IElementType> = setOf(KtTokens.EQ, KtTokens.EQEQEQ, KtTokens.EXCLEQEQEQ)
 
-        fun total(
+        fun weights(
             element: KtElement,
             scoring: Scoring,
-        ): Double =
+        ): List<Double> =
             mutableListOf<Double>()
                 .also { element.accept(CallWeights(scoring, 0, it)) }
-                .sum()
     }
 }

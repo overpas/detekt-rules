@@ -306,7 +306,7 @@ With the defaults: `w(call) = 1 + 0.25 · nest + 0.1 · chain`, `F(fun) = max(1,
 - A nested class, a companion object and a nested object have their own score and add `nestedClassScore` to the parent. An inner class adds its full score to the parent. The calls in an object expression count for the enclosing function, one level deeper.
 - Functions and property getters with a composable annotation do not add to the normal score. They add to a separate composable score, with its own limits. Files that match `testSourcePatterns` use the test limits for the normal score.
 
-The rule reports each class and each file over a limit. The message shows the score, the limit, the bucket and the 3 largest parts. The default config excludes `**/build/**` and `**/generated/**`.
+The rule reports each class and each file over a limit. The message shows the score, the limit, the bucket and the 3 largest parts. The rule also reports each function over a function limit, at the function name, with its score `F(fun)`, the limit, the bucket, the number of parameters and the number of calls. A function is a member function, a top-level or extension function or a secondary constructor. Local functions, lambdas and the functions of an object expression count only for the enclosing function. The default config excludes `**/build/**` and `**/generated/**`.
 
 | Option | Default | Description |
 |---|---|---|
@@ -316,6 +316,9 @@ The rule reports each class and each file over a limit. The message shows the sc
 | `testFileLimit` | `600` | Maximum weighted complexity of a file in the test sources |
 | `composableClassLimit` | `5` | Maximum weighted complexity of the composable functions and getters of a class |
 | `composableFileLimit` | `410` | Maximum weighted complexity of the composable functions and getters of a file |
+| `functionLimit` | `70` | Maximum weighted complexity of a function |
+| `testFunctionLimit` | `90` | Maximum weighted complexity of a function in the test sources |
+| `composableFunctionLimit` | `380` | Maximum weighted complexity of a composable function |
 | `nestWeight` | `0.25` | Weight that a call gets for each level of nesting |
 | `chainWeight` | `0.1` | Weight that a call gets for each earlier call in its chain |
 | `minFunctionScore` | `1.0` | Score of a function without calls and with at most one parameter |

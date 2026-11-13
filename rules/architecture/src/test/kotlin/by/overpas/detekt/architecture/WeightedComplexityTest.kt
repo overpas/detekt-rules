@@ -636,4 +636,118 @@ class WeightedComplexityTest {
 
         assertIs<IllegalStateException>(failure)
     }
+
+    @Test
+    fun `a function over the function limit is reported with its parameters and calls`() {
+        val sut = WeightedComplexity(TestConfig("functionLimit" to 0))
+        val code = """
+            class Greeter {
+                fun greet(first: String, second: String, third: String, fourth: String) {
+                    println(first)
+                }
+            }
+        """.trimIndent()
+        val expected = listOf(
+            "`greet()` has a weighted complexity of 4.0 (limit 0.0, normal bucket). Parameters: 4, calls: 1.",
+        )
+
+        val messages = sut.lint(code).map(Finding::message)
+
+        assertEquals(expected, messages)
+    }
+
+    @Test
+    fun `a function in the test sources uses the test function limit`() {
+        val sut = WeightedComplexity(TestConfig("functionLimit" to 0, "testFunctionLimit" to 2))
+        val code = """
+            class GreeterTest {
+                fun greet() {
+                    println("a")
+                    println("b")
+                }
+            }
+        """.trimIndent()
+        val path = createTempDirectory().resolve("src/test/kotlin/GreeterTest.kt").createParentDirectories()
+        path.writeText(code)
+        val expected = listOf(
+            "`greet()` has a weighted complexity of 3.0 (limit 2.0, test bucket). Parameters: 0, calls: 2.",
+        )
+
+        val messages = sut.lint(compileForTest(path)).map(Finding::message)
+
+        assertEquals(expected, messages)
+    }
+
+    @Test
+    fun `a composable function uses the composable function limit`() {
+        val sut = WeightedComplexity(TestConfig("functionLimit" to 0, "composableFunctionLimit" to 1))
+        val code = """
+            @Composable
+            fun Content(title: String) {
+                Text(title.uppercase())
+            }
+        """.trimIndent()
+        val expected = listOf(
+            "`Content()` has a weighted complexity of 3.0 (limit 1.0, composable bucket). Parameters: 1, calls: 2.",
+        )
+
+        val messages = sut.lint(code).map(Finding::message)
+
+        assertEquals(expected, messages)
+    }
+
+    @Test
+    fun `a secondary constructor is reported as a function`() {
+        val sut = WeightedComplexity(TestConfig("functionLimit" to 0))
+        val code = """
+            class Point(val x: Int) {
+                constructor(text: String) : this(text.length)
+            }
+        """.trimIndent()
+        val expected = listOf(
+            "`constructor()` has a weighted complexity of 1.0 (limit 0.0, normal bucket). Parameters: 1, calls: 0.",
+        )
+
+        val messages = sut.lint(code).map(Finding::message)
+
+        assertEquals(expected, messages)
+    }
+
+    @Test
+    fun `local functions and object literal functions count only for the enclosing function`() {
+        val sut = WeightedComplexity(TestConfig("functionLimit" to 0))
+        val code = """
+            fun start() {
+                fun log() {
+                    println("a")
+                }
+                val task = object : Runnable {
+                    override fun run() {
+                        println("b")
+                    }
+                }
+            }
+        """.trimIndent()
+        val expected = listOf(
+            "`start()` has a weighted complexity of 3.5 (limit 0.0, normal bucket). Parameters: 0, calls: 2.",
+        )
+
+        val messages = sut.lint(code).map(Finding::message)
+
+        assertEquals(expected, messages)
+    }
+
+    @Test
+    fun `a function score equal to the function limit passes`() {
+        val sut = WeightedComplexity(TestConfig("functionLimit" to 2))
+        val code = """
+            fun greet() {
+                println("a")
+            }
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
 }

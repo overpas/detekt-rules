@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnonymousInitializer
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
@@ -29,20 +30,17 @@ internal class MemberCost(
                         declaration.getter?.hasAnnotation(composableAnnotations) == true,
                 )
 
-            is KtNamedFunction ->
-                Part(
-                    "${declaration.nameAsSafeName}()",
-                    declaration.functionScore(declaration.valueParameters.size),
-                    declaration.hasAnnotation(composableAnnotations),
-                )
+            is KtNamedFunction -> declaration.measure().part
 
-            is KtSecondaryConstructor ->
-                Part("constructor()", declaration.functionScore(declaration.valueParameters.size), 0.0)
+            is KtSecondaryConstructor -> declaration.measure().part
 
             is KtAnonymousInitializer -> Part("init", declaration.functionScore(0), 0.0)
 
             else -> null
         }
+
+    fun ofFunction(function: KtFunction): FunctionScore =
+        function.measure()
 
     fun ofParameter(parameter: KtParameter): Part =
         Part(parameter.nameAsSafeName.asString(), parameter.typeReference.typeScore(), 0.0)
@@ -50,8 +48,22 @@ internal class MemberCost(
     fun ofNestedClass(name: String): Part =
         Part(name, scoring.nestedClassScore, 0.0)
 
-    private fun KtElement.functionScore(parameters: Int): Double =
-        max(1.0, sqrt(parameters.toDouble())) * (scoring.minFunctionScore + CallWeights.total(this, scoring))
+    private fun KtFunction.measure(): FunctionScore {
+        val calls = CallWeights.weights(this, scoring)
+        val parameters = valueParameters.size
+        val name = if (this is KtSecondaryConstructor) "constructor()" else "$nameAsSafeName()"
+        return FunctionScore(
+            Part(name, functionScore(parameters, calls), hasAnnotation(composableAnnotations)),
+            parameters,
+            calls.size,
+        )
+    }
+
+    private fun KtElement.functionScore(
+        parameters: Int,
+        calls: List<Double> = CallWeights.weights(this, scoring),
+    ): Double =
+        max(1.0, sqrt(parameters.toDouble())) * (scoring.minFunctionScore + calls.sum())
 
     private fun KtTypeReference?.typeScore(): Double =
         if (scoring.arePropertyTypeArgumentsCounted) TypeNodes.count(this?.typeElement).toDouble() else 1.0
@@ -59,6 +71,6 @@ internal class MemberCost(
     private fun KtProperty.propertyScore(): Double {
         val isAbstract = hasModifier(KtTokens.ABSTRACT_KEYWORD) ||
             (containingClass()?.isInterface() == true && getter?.hasBody() != true)
-        return if (isAbstract) 1.0 else typeReference.typeScore() + CallWeights.total(this, scoring)
+        return if (isAbstract) 1.0 else typeReference.typeScore() + CallWeights.weights(this, scoring).sum()
     }
 }

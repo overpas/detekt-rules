@@ -282,6 +282,63 @@ class Account
 data class Transfer(val from: Account, val to: Account)
 ```
 
+#### `WeightedComplexity`
+
+A class or a file must not be too complex. The rule adds a weight for each property, function and call, and more for nested and chained calls and for many parameters. Split the class or the file into smaller parts.
+
+The rule uses a weighted sum of the members, similar to the WMC metric:
+
+```
+w(call)  = 1 + 0.25 · nest + 0.1 · chain
+F(fun)   = max(1, √n) · (1 + Σ w)
+P(prop)  = T(type) + Σ w
+S(class) = Σ P + Σ F + Σ S(inner class) + 1 for each nested class
+S(file)  = Σ P + Σ F of all members of all classes and of the top level
+```
+
+- A call is a function or constructor call, an infix call, an operator (`+`, `==`, `..`, `in`, `[]`, `!`, `++`, `+=` and the others) and also `&&`, `||` and `?:`. `=`, `!!`, `as`, `is` and `::` references are not calls.
+- `nest` is the number of `if`, `else`, `when` entry, loop, `try`, `catch`, `finally` and lambda bodies around the call. Conditions and `when` subjects stay on the outer level. `else if` adds no level.
+- `chain` is the number of calls and index accesses before the call in the same receiver chain. Properties in the chain do not count.
+- `n` is the number of value parameters. Receivers and context parameters do not count. Secondary constructors and `init` blocks are functions.
+- `T` is the number of type nodes: `String` is 1, `Map<String, List<Int>>` is 4, a function type `(A, B) -> C` is 4. A property without a written type and an abstract property are 1. The `val` and `var` parameters of a primary constructor are properties.
+- A nested class, a companion object and a nested object have their own score and add 1 to the parent. An inner class adds its full score to the parent. The calls in an object expression count for the enclosing function, one level deeper.
+- Functions and property getters with a composable annotation do not add to the normal score. They add to a separate composable score, with its own limits. Files that match `testSourcePatterns` use the test limits for the normal score.
+
+The rule reports each class and each file over a limit. The message shows the score, the limit, the bucket and the 3 largest parts. The default config excludes `**/build/**` and `**/generated/**`.
+
+| Option | Default | Description |
+|---|---|---|
+| `classLimit` | `150` | Maximum weighted complexity of a class |
+| `fileLimit` | `155` | Maximum weighted complexity of a file |
+| `testClassLimit` | `555` | Maximum weighted complexity of a class in the test sources |
+| `testFileLimit` | `600` | Maximum weighted complexity of a file in the test sources |
+| `composableClassLimit` | `5` | Maximum weighted complexity of the composable functions and getters of a class |
+| `composableFileLimit` | `410` | Maximum weighted complexity of the composable functions and getters of a file |
+| `testSourcePatterns` | `['**/src/test/**', '**/src/*Test/**']` | Path patterns of the test sources, which use the test limits |
+| `composableAnnotations` | `['Composable']` | Annotations that put a function or a property getter in the composable bucket |
+
+Fails with `classLimit: 5`:
+
+```kotlin
+class Names {
+    fun initials(names: List<String>): String =
+        names.map { it.first() }.filter { it.isUpperCase() }.joinToString("")
+}
+```
+
+The score is 6.8: `map` 1.0, `filter` 1.1, `joinToString` 1.2, `first` and `isUpperCase` 1.25 each in a lambda, plus 1 for the function.
+
+Passes with `classLimit: 5`:
+
+```kotlin
+class Names {
+    fun initials(names: List<String>): String =
+        names.map(String::first).joinToString("")
+}
+```
+
+The score is 3.1: `map` 1.0, `joinToString` 1.1, plus 1 for the function.
+
 ### `overpas-compose`
 
 #### `AnimatedContentTargetIgnored`

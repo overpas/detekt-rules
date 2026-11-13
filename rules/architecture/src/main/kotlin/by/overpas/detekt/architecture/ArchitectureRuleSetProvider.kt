@@ -17,6 +17,7 @@ class ArchitectureRuleSetProvider : RuleSetProvider {
                 ::LowCohesion,
                 ::NonInjectedDependency,
                 ::RepeatedCollaboratorType,
+                ::WeightedComplexity,
             ),
         )
 }

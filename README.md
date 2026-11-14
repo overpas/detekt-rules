@@ -315,10 +315,10 @@ The rule reports each class and each file over a limit. The message shows the sc
 | `testClassLimit` | `550` | Maximum weighted complexity of a class in the test sources |
 | `testFileLimit` | `600` | Maximum weighted complexity of a file in the test sources |
 | `composableClassLimit` | `5` | Maximum weighted complexity of the composable functions and getters of a class |
-| `composableFileLimit` | `410` | Maximum weighted complexity of the composable functions and getters of a file |
+| `composableFileLimit` | `300` | Maximum weighted complexity of the composable functions and getters of a file |
 | `functionLimit` | `70` | Maximum weighted complexity of a function |
 | `testFunctionLimit` | `90` | Maximum weighted complexity of a function in the test sources |
-| `composableFunctionLimit` | `380` | Maximum weighted complexity of a composable function |
+| `composableFunctionLimit` | `300` | Maximum weighted complexity of a composable function |
 | `nestWeight` | `0.25` | Weight that a call gets for each level of nesting |
 | `chainWeight` | `0.1` | Weight that a call gets for each earlier call in its chain |
 | `minFunctionScore` | `1.0` | Score of a function without calls and with at most one parameter |

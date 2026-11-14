@@ -42,10 +42,10 @@ class WeightedComplexity(config: Config) :
     private val composableClassLimit: Int by config(5)
 
     @Configuration("maximum weighted complexity of the composable functions and getters of a file")
-    private val composableFileLimit: Int by config(410)
+    private val composableFileLimit: Int by config(300)
 
     @Configuration("maximum weighted complexity of a composable function")
-    private val composableFunctionLimit: Int by config(380)
+    private val composableFunctionLimit: Int by config(300)
 
     @Configuration("weight that a call gets for each level of nesting")
     private val nestWeight: Double by decimalConfig(0.25)

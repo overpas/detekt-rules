@@ -26,10 +26,10 @@ overpas-architecture:
     testClassLimit: 550
     testFileLimit: 600
     composableClassLimit: 5
-    composableFileLimit: 410
+    composableFileLimit: 300
     functionLimit: 70
     testFunctionLimit: 90
-    composableFunctionLimit: 380
+    composableFunctionLimit: 300
     nestWeight: 0.25
     chainWeight: 0.1
     minFunctionScore: 1.0

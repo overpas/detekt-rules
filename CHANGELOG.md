@@ -3,6 +3,27 @@
 All notable changes are documented in this file. The project uses
 [Semantic Versioning](https://semver.org).
 
+## 0.9.0
+
+### Added rules
+
+- `overpas-architecture`: `WeightedComplexity` reports a class, a file or a function whose
+  weighted complexity is above a limit. The score is a weighted sum of the properties, functions
+  and calls: each call adds 1, plus `nestWeight` (0.25) for each enclosing block or lambda and
+  `chainWeight` (0.1) for each earlier call in its receiver chain. A function with `n` value
+  parameters multiplies its score by `max(1, √n)`. The README gives the full formula. The finding
+  shows the score, the limit, the bucket and the largest parts. Each score has a normal, a test
+  and a composable bucket with its own limit:
+  - class: `classLimit` 100, `testClassLimit` 550, `composableClassLimit` 5
+  - file: `fileLimit` 150, `testFileLimit` 600, `composableFileLimit` 300
+  - function: `functionLimit` 70, `testFunctionLimit` 90, `composableFunctionLimit` 300
+
+  Files that match `testSourcePatterns` use the test limits. Functions and getters with one of
+  the `composableAnnotations` use the composable limits. The calculation options are
+  `nestWeight`, `chainWeight`, `minFunctionScore`, `arePropertyTypeArgumentsCounted` and
+  `nestedClassScore`. The rule does not need type resolution. It is active in the default config
+  of the rule set jar. To turn it off, set `WeightedComplexity: active: false` in your config.
+
 ## 0.8.0
 
 ### Added rules

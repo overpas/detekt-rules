@@ -13,10 +13,15 @@ class ArchitectureRuleSetProvider : RuleSetProvider {
             ruleSetId,
             listOf(
                 ::CatchWithoutResultType,
+                ::ConcreteCollaborator,
+                ::ConstructedCollaborator,
+                ::HardcodedUrl,
                 ::HiddenAbstraction,
                 ::LowCohesion,
                 ::NonInjectedDependency,
+                ::ProvidesInsteadOfInject,
                 ::RepeatedCollaboratorType,
+                ::StoreTypeLeak,
                 ::WeightedComplexity,
             ),
         )

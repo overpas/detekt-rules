@@ -1,7 +1,20 @@
 overpas-architecture:
+  HardcodedUrl:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**', '**/*.gradle.kts']
+    allowedPackages: ['di']
   NonInjectedDependency:
     active: true
     providerAnnotations: ['Provides', 'Binds']
+  StoreTypeLeak:
+    active: true
+    excludes: ['**/di/**']
+    storeSuffix: 'Store'
+    storeTypes: ['Intent', 'Action', 'Message', 'State', 'Label']
+    handlerPackage: 'handlers'
+    componentTypes: ['Intent', 'State', 'Label']
+    uiPackage: 'ui'
+    uiTypes: ['State', 'Label']
 
 overpas-compose:
   AnimatedContentTargetIgnored:
@@ -80,6 +93,9 @@ overpas-gradle:
     testLibraries: ['androidx.compose.ui.test', 'androidx.espresso', 'androidx.test', 'compose.ui.test', 'detekt.test', 'junit', 'kotlin.test', 'kotlinx.coroutines.test', 'robolectric']
 
 overpas-style:
+  ConversionNameMismatch:
+    active: true
+    ignoredSuffixes: ['OrNull', 'OrThrow', 'OrDefault', 'OrElse', 'OrEmpty']
   ExpressionBodyOnNewLine:
     active: true
   FileStructure:
@@ -103,6 +119,8 @@ overpas-style:
     active: true
     ignoredWords: ['And', 'At', 'By', 'For', 'From', 'In', 'Of', 'On', 'Or', 'To', 'With']
     excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+  RepeatedLazyValue:
+    active: true
   SetupWithoutApply:
     active: true
     minUseCount: 2

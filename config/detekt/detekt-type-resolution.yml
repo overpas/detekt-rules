@@ -64,6 +64,14 @@ exceptions:
 overpas-architecture:
   CatchWithoutResultType:
     active: true
+  ConcreteCollaborator:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+    rootPackageDepth: 2
+    areDataClassesIgnored: true
+  ConstructedCollaborator:
+    active: true
+    excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax']
   HiddenAbstraction:
     active: true
     severity: 'warning'
@@ -74,6 +82,10 @@ overpas-architecture:
     minFunctions: 3
     ignoredFunctions: ['equals', 'hashCode', 'toString']
     areDataClassesIgnored: true
+  ProvidesInsteadOfInject:
+    active: true
+    providerAnnotations: ['Provides']
+    rootPackageDepth: 2
   RepeatedCollaboratorType:
     active: true
     excludedTypes: ['kotlin.Boolean', 'kotlin.Char', 'kotlin.Number', 'kotlin.UByte', 'kotlin.UShort', 'kotlin.UInt', 'kotlin.ULong', 'kotlin.CharSequence', 'kotlin.collections.Iterable', 'kotlin.collections.Map', 'kotlin.Array', 'kotlin.BooleanArray', 'kotlin.CharArray', 'kotlin.ByteArray', 'kotlin.ShortArray', 'kotlin.IntArray', 'kotlin.LongArray', 'kotlin.FloatArray', 'kotlin.DoubleArray', 'kotlin.sequences.Sequence', 'kotlin.Function', 'kotlin.Enum', 'kotlin.time.Duration', 'kotlin.time.Instant', 'kotlin.uuid.Uuid', 'kotlin.coroutines.CoroutineContext', 'kotlinx.coroutines.CoroutineDispatcher']
@@ -92,6 +104,12 @@ overpas-coroutines:
   TryInCoroutineFunction:
     active: true
     scopeTypes: ['kotlinx.coroutines.CoroutineScope']
+
+overpas-style:
+  CollaboratorNameMismatch:
+    active: true
+    excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax', 'org.jetbrains.kotlin', 'com.intellij']
+    areDataClassesIgnored: true
 
 naming:
   BooleanPropertyNaming:

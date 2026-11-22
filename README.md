@@ -122,6 +122,94 @@ fun load(): Data {
 }
 ```
 
+#### `ConcreteCollaborator`
+
+A constructor must take a collaborator through its interface. A class that implements a project interface ties the constructor to one implementation. Needs type resolution, so the plain `detekt` task skips it.
+
+The rule reports a constructor parameter whose type is a class that implements a project interface, also through a superclass. A project interface is an interface in the sources under analysis, or an interface whose package starts with the same `rootPackageDepth` segments as the package of the checked file. Data classes, value classes, enums and objects as parameter types pass. The default config excludes the test sources.
+
+| Option | Default | Description |
+|---|---|---|
+| `rootPackageDepth` | `2` | Number of the first package segments that a project interface shares with the checked file |
+| `areDataClassesIgnored` | `true` | Ignore the constructors of data classes |
+
+Fails:
+
+```kotlin
+interface NetworkClient
+class KtorNetworkClient : NetworkClient
+class Repository(private val client: KtorNetworkClient)
+```
+
+Passes:
+
+```kotlin
+interface NetworkClient
+class Repository(private val client: NetworkClient)
+```
+
+#### `ConstructedCollaborator`
+
+A class must not build a collaborator from its constructor parameters in a property initializer or in an init block. Inject the collaborator instead. Needs type resolution, so the plain `detekt` task skips it.
+
+The rule reports a property initializer, a property delegate or an `init` block with a constructor call that takes a constructor parameter of the class, once for each property or block. A call that also takes a local value or a lambda parameter passes, because it builds one value for each item. Data classes, value classes and the classes of the excluded packages pass.
+
+| Option | Default | Description |
+|---|---|---|
+| `excludedPackages` | `['kotlin', 'kotlinx', 'java', 'javax']` | Packages of the classes that a class can build from its constructor parameters, with subpackages |
+
+Fails:
+
+```kotlin
+class Scheduler(workManager: WorkManager) {
+    private val queue = AndroidWorkQueue(workManager)
+}
+
+class Scheduler(workManager: WorkManager) {
+    private val queue by lazy { AndroidWorkQueue(workManager) }
+}
+```
+
+Passes:
+
+```kotlin
+class Scheduler(private val queue: WorkQueue)
+
+class Parts(names: List<String>, cost: Cost) {
+    private val parts = names.map { Part(it, cost) }
+}
+```
+
+#### `HardcodedUrl`
+
+Production code must not hardcode an HTTP or HTTPS URL outside the DI packages. Supply the URL through DI, a build property or a resource.
+
+The rule reports a string with `http://` or `https://` in a file whose package has no allowed segment. The default config excludes the test sources and the Gradle scripts.
+
+| Option | Default | Description |
+|---|---|---|
+| `allowedPackages` | `['di']` | Names of the package segments where a URL can be hardcoded |
+
+Fails:
+
+```kotlin
+package app.auth
+
+class UserInfoApi(private val client: NetworkClient) {
+    suspend fun get() = client.get("https://openidconnect.googleapis.com/v1/userinfo")
+}
+```
+
+Passes:
+
+```kotlin
+package app.auth.di
+
+object AuthUrls {
+    const val USER_INFO = "https://openidconnect.googleapis.com/v1/userinfo"
+}
+```
+
 #### `HiddenAbstraction`
 
 A class, an interface, an object or a file must not have more helper functions than entry points. Many helper functions that call each other show a hidden abstraction. Put the helpers behind a new abstraction, or move them to the types that they use. Needs type resolution, so the plain `detekt` task skips it.
@@ -248,6 +336,41 @@ object Providers {
 }
 ```
 
+#### `ProvidesInsteadOfInject`
+
+A DI provider must not only pass its parameters to the constructor of a project class. Put `@Inject` on the class, and bind it to its interface with `@Binds`. Needs type resolution, so the plain `detekt` task skips it.
+
+The rule reports a provider whose body is one constructor call, when each argument of the call is a parameter of the provider. When the provider returns an interface, the message proposes `@Binds`. A project class is a class in the sources under analysis, or a class whose package starts with the same `rootPackageDepth` segments as the package of the checked file. A provider of a library class passes, because the library class cannot get `@Inject`.
+
+| Option | Default | Description |
+|---|---|---|
+| `providerAnnotations` | `['Provides']` | Short names of the annotations that mark a DI provider |
+| `rootPackageDepth` | `2` | Number of the first package segments that a project class shares with the checked file |
+
+Fails:
+
+```kotlin
+@BindingContainer
+object RepositoryBindings {
+    @Provides
+    fun repository(api: Api): Repository = DefaultRepository(api)
+}
+```
+
+Passes:
+
+```kotlin
+@Inject
+@ContributesBinding(AppScope::class)
+class DefaultRepository(private val api: Api) : Repository
+
+@BindingContainer
+object ClientBindings {
+    @Provides
+    fun client(engine: HttpClientEngine): HttpClient = HttpClient(engine)
+}
+```
+
 #### `RepeatedCollaboratorType`
 
 A constructor must not take more than one collaborator of the same type. A group of same-type collaborators tends to grow, so the class does not scale. Put the group behind one abstraction. Needs type resolution, so the plain `detekt` task skips it.
@@ -280,6 +403,41 @@ class Interactor(users: Users, orders: Orders)
 
 class Account
 data class Transfer(val from: Account, val to: Account)
+```
+
+#### `StoreTypeLeak`
+
+The nested types of a store must stay near the store. Intent, Action and Message stay in the package of the store and its handlers. The component can also use Intent, State and Label, and the UI can use State and Label.
+
+A store is a type whose name ends with `storeSuffix`. The rule finds its nested types in imports and in qualified names, such as `SyncStore.Message`, and reports each of them once in a file. The handlers are in the `handlerPackage` subpackage of the store package. The component package is the store package or its parent. The UI is in the `uiPackage` subpackage of the component package. The default config excludes the `di` packages, because the bindings use all the types.
+
+| Option | Default | Description |
+|---|---|---|
+| `storeSuffix` | `'Store'` | Suffix of the names of the store types |
+| `storeTypes` | `['Intent', 'Action', 'Message', 'State', 'Label']` | Names of the nested types of a store that the rule checks |
+| `handlerPackage` | `'handlers'` | Name of the subpackage of the store package that holds the handlers |
+| `componentTypes` | `['Intent', 'State', 'Label']` | Nested types of a store that the component package can also use |
+| `uiPackage` | `'ui'` | Name of the subpackage of the component package that holds the UI |
+| `uiTypes` | `['State', 'Label']` | Nested types of a store that the UI package can also use |
+
+Fails:
+
+```kotlin
+package app.feature.sync.overview
+
+import app.feature.sync.toggle.SyncToggleStore.Message
+
+class SyncOverviewLoader(private val dispatch: (Message) -> Unit)
+```
+
+Passes:
+
+```kotlin
+package app.feature.sync.toggle.handlers
+
+import app.feature.sync.toggle.SyncToggleStore.Message
+
+class OnResumeHandler(private val dispatch: (Message) -> Unit)
 ```
 
 #### `WeightedComplexity`
@@ -937,6 +1095,59 @@ dependencies {
 
 ### `overpas-style`
 
+#### `CollaboratorNameMismatch`
+
+The name of a constructor property must contain the last word of the name of its type. `client: NetworkClient` tells what the property is, `network: NetworkClient` does not. Needs type resolution, so the plain `detekt` task skips it.
+
+The name does not have to end with the full type name, and the check ignores case. Constructor parameters without `val` or `var`, function types, type parameters and the types of the excluded packages pass.
+
+| Option | Default | Description |
+|---|---|---|
+| `excludedPackages` | `['kotlin', 'kotlinx', 'java', 'javax']` | Packages of the types that a property can have under any name, with subpackages |
+| `areDataClassesIgnored` | `true` | Ignore the constructors of data classes |
+
+Fails:
+
+```kotlin
+class UserApi(private val network: NetworkClient)
+
+class Sync(private val backups: DriveBackupRepository)
+```
+
+Passes:
+
+```kotlin
+class UserApi(private val client: NetworkClient)
+
+class Sync(private val remoteOtpDb: OtpDb)
+```
+
+#### `ConversionNameMismatch`
+
+The return type of a `toX` or an `asX` function must contain `X` in its name. `toMessage(): SyncAlert` promises a message but gives an alert.
+
+The rule checks the explicit return type only. The check ignores case, and the qualifiers of a nested type count, so `toStoreState(): SyncStore.State` passes. A return type that is a type parameter of the function passes.
+
+| Option | Default | Description |
+|---|---|---|
+| `ignoredSuffixes` | `['OrNull', 'OrThrow', 'OrDefault', 'OrElse', 'OrEmpty']` | Suffixes of a conversion name that the return type does not have to contain |
+
+Fails:
+
+```kotlin
+fun SyncError.toMessage(): SyncAlert?
+
+fun String.asUser(): Account
+```
+
+Passes:
+
+```kotlin
+fun SyncError.toAlert(): SyncAlert?
+
+fun String.toIntOrNull(): Int?
+```
+
 #### `ExpressionBodyOnNewLine`
 
 An expression body on the signature line is hard to scan. Put a newline after `=`.
@@ -1140,6 +1351,33 @@ Passes:
 interface UserRepository {
     fun get(id: String): User
     fun getAll(): List<User>
+}
+```
+
+#### `RepeatedLazyValue`
+
+The `value` of a `Lazy` must be read only once. Delegate a property to the `Lazy` with `by`, or keep the value in one private property.
+
+The rule checks parameters and properties of the `Lazy` type. It counts `x.value` and `this.x.value` in the class of a constructor parameter or a member property, in the function of a function parameter and in the block of a local value.
+
+No options.
+
+Fails:
+
+```kotlin
+class SyncStatus(private val settings: Lazy<Settings>) {
+    fun lastSync() = settings.value.getLong("last")
+    fun error() = settings.value.getString("error")
+}
+```
+
+Passes:
+
+```kotlin
+class SyncStatus(lazySettings: Lazy<Settings>) {
+    private val settings by lazySettings
+    fun lastSync() = settings.getLong("last")
+    fun error() = settings.getString("error")
 }
 ```
 

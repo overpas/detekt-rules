@@ -1,5 +1,12 @@
 overpas-style:
   active: true
+  CollaboratorNameMismatch:
+    active: true
+    excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax']
+    areDataClassesIgnored: true
+  ConversionNameMismatch:
+    active: true
+    ignoredSuffixes: ['OrNull', 'OrThrow', 'OrDefault', 'OrElse', 'OrEmpty']
   ExpressionBodyOnNewLine:
     active: true
   FileStructure:
@@ -20,6 +27,8 @@ overpas-style:
   RedundantFunctionName:
     active: true
     ignoredWords: ['And', 'At', 'By', 'For', 'From', 'In', 'Of', 'On', 'Or', 'To', 'With']
+  RepeatedLazyValue:
+    active: true
   SetupWithoutApply:
     active: true
     minUseCount: 2

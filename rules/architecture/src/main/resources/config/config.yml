@@ -4,15 +4,16 @@ overpas-architecture:
     active: false
   ConcreteCollaborator:
     active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
     rootPackageDepth: 2
     areDataClassesIgnored: true
   ConstructedCollaborator:
     active: true
+    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
     excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax']
   HardcodedUrl:
     active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**', '**/*.gradle.kts']
+    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**', '**/*.gradle.kts']
     allowedPackages: ['di']
   HiddenAbstraction:
     active: true

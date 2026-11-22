@@ -66,11 +66,12 @@ overpas-architecture:
     active: true
   ConcreteCollaborator:
     active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
     rootPackageDepth: 2
     areDataClassesIgnored: true
   ConstructedCollaborator:
     active: true
+    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
     excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax']
   HiddenAbstraction:
     active: true

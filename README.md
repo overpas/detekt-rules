@@ -152,7 +152,7 @@ class Repository(private val client: NetworkClient)
 
 A class must not build a collaborator from its constructor parameters in a property initializer or in an init block. Inject the collaborator instead. Needs type resolution, so the plain `detekt` task skips it.
 
-The rule reports a property initializer, a property delegate or an `init` block with a constructor call that takes a constructor parameter of the class, once for each property or block. A call that also takes a local value or a lambda parameter passes, because it builds one value for each item. Data classes, value classes and the classes of the excluded packages pass.
+The rule reports a property initializer, a property delegate or an `init` block with a constructor call that takes a constructor parameter of the class, once for each property or block. A call that also takes a local value or a lambda parameter passes, because it builds one value for each item. Data classes, value classes and the classes of the excluded packages pass. The default config excludes the test sources.
 
 | Option | Default | Description |
 |---|---|---|

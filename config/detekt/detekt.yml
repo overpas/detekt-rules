@@ -1,7 +1,7 @@
 overpas-architecture:
   HardcodedUrl:
     active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**', '**/*.gradle.kts']
+    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**', '**/*.gradle.kts']
     allowedPackages: ['di']
   NonInjectedDependency:
     active: true

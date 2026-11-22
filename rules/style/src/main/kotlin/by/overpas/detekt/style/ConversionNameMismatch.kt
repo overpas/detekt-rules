@@ -26,11 +26,7 @@ class ConversionNameMismatch(config: Config) :
         val subject = ignoredSuffixes.fold(target) { name, suffix -> name.removeSuffix(suffix) }
         val element = function.typeReference?.typeElement
         val type = (if (element is KtNullableType) element.innerType else element) as? KtUserType ?: return
-        val typeName = generateSequence(type) { it.qualifier }
-            .mapNotNull { it.referencedName }
-            .toList()
-            .asReversed()
-            .joinToString("")
+        val typeName = type.text.filter(Char::isLetterOrDigit)
         val typeParameters = function.typeParameters.mapNotNull { it.name }
         if (typeName !in typeParameters && !typeName.contains(subject, ignoreCase = true)) {
             report(

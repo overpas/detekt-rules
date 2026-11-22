@@ -63,6 +63,29 @@ class ConversionNameMismatchTest {
     }
 
     @Test
+    fun `a type argument with the converted name passes`() {
+        val code = """
+            class DriveFile
+            fun String.toDriveFile(): Result<DriveFile> = Result.success(DriveFile())
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `a type argument without the converted name is reported`() {
+        val code = """
+            fun String.toAccessToken(): Result<String> = Result.success(this)
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
     fun `an or null conversion passes`() {
         val code = """
             fun String.toIntOrNull(): Int? = null

@@ -1126,7 +1126,7 @@ class Sync(private val remoteOtpDb: OtpDb)
 
 The return type of a `toX` or an `asX` function must contain `X` in its name. `toMessage(): SyncAlert` promises a message but gives an alert.
 
-The rule checks the explicit return type only. The check ignores case, and the qualifiers of a nested type count, so `toStoreState(): SyncStore.State` passes. A return type that is a type parameter of the function passes.
+The rule checks the explicit return type only. The check ignores case, and the qualifiers and type arguments count, so `toStoreState(): SyncStore.State` and `toDriveFile(): Result<DriveFile>` pass. A return type that is a type parameter of the function passes.
 
 | Option | Default | Description |
 |---|---|---|

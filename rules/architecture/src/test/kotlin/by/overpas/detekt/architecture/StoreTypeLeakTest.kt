@@ -13,11 +13,11 @@ class StoreTypeLeakTest {
     @Test
     fun `a message import outside the store package is reported`() {
         val code = """
-            package app.feature.sync.toggle.overview
+            package com.example.cart.totals
 
-            import app.feature.sync.toggle.SyncToggleStore.Message
+            import com.example.cart.checkout.CheckoutStore.Message
 
-            class SyncOverviewLoader(private val dispatch: (Message) -> Unit)
+            class TotalsLoader(private val dispatch: (Message) -> Unit)
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -26,13 +26,13 @@ class StoreTypeLeakTest {
     }
 
     @Test
-    fun `a qualified action outside the store package is reported`() {
+    fun `a qualified action outside the store package is reported once`() {
         val code = """
-            package app.feature.sync
+            package com.example.cart
 
-            import app.feature.sync.toggle.SyncToggleStore
+            import com.example.cart.checkout.CheckoutStore
 
-            class Loader(private val first: SyncToggleStore.Action, private val second: SyncToggleStore.Action)
+            class TotalsLoader(private val first: CheckoutStore.Action, private val second: CheckoutStore.Action)
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -43,11 +43,11 @@ class StoreTypeLeakTest {
     @Test
     fun `a qualified message expression outside the store package is reported`() {
         val code = """
-            package app.feature.sync.loader
+            package com.example.cart.totals
 
-            import app.feature.sync.toggle.SyncToggleStore
+            import com.example.cart.checkout.CheckoutStore
 
-            val loaded = SyncToggleStore.Message.Loaded
+            val loaded = CheckoutStore.Message.Loaded
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -58,9 +58,9 @@ class StoreTypeLeakTest {
     @Test
     fun `a store type in the store package passes`() {
         val code = """
-            package app.feature.sync.toggle
+            package com.example.cart.checkout
 
-            class SyncToggleExecutorFactory(private val dispatch: (SyncToggleStore.Message) -> Unit)
+            class CheckoutExecutorFactory(private val dispatch: (CheckoutStore.Message) -> Unit)
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -69,14 +69,30 @@ class StoreTypeLeakTest {
     }
 
     @Test
-    fun `a store type in the handlers package passes`() {
+    fun `a store type in a subpackage of the store package is reported by default`() {
         val code = """
-            package app.feature.sync.toggle.handlers
+            package com.example.cart.checkout.steps
 
-            import app.feature.sync.toggle.SyncToggleStore.Action
-            import app.feature.sync.toggle.SyncToggleStore.Message
+            import com.example.cart.checkout.CheckoutStore.Message
 
-            class OnResumeHandler(private val dispatch: (Message) -> Unit, private val forward: (Action) -> Unit)
+            class PayStep(private val dispatch: (Message) -> Unit)
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
+    fun `a store type in an allowed subpackage passes`() {
+        val sut = StoreTypeLeak(TestConfig("allowedSubpackages" to listOf("steps")))
+        val code = """
+            package com.example.cart.checkout.steps.payment
+
+            import com.example.cart.checkout.CheckoutStore.Action
+            import com.example.cart.checkout.CheckoutStore.Message
+
+            class PayStep(private val dispatch: (Message) -> Unit, private val forward: (Action) -> Unit)
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -87,13 +103,13 @@ class StoreTypeLeakTest {
     @Test
     fun `an intent, a state and a label in the component package pass`() {
         val code = """
-            package app.feature.sync
+            package com.example.cart
 
-            import app.feature.sync.toggle.SyncToggleStore
+            import com.example.cart.checkout.CheckoutStore
 
-            class SyncComponent(private val store: SyncToggleStore) {
-                fun onBackClick() = store.accept(SyncToggleStore.Intent.OnBackClick)
-                fun handle(label: SyncToggleStore.Label, state: SyncToggleStore.State) = Unit
+            class CartComponent(private val store: CheckoutStore) {
+                fun onPayClick() = store.accept(CheckoutStore.Intent.OnPayClick)
+                fun handle(label: CheckoutStore.Label, state: CheckoutStore.State) = Unit
             }
         """.trimIndent()
 
@@ -105,11 +121,11 @@ class StoreTypeLeakTest {
     @Test
     fun `a message in the component package is reported`() {
         val code = """
-            package app.feature.sync
+            package com.example.cart
 
-            import app.feature.sync.toggle.SyncToggleStore
+            import com.example.cart.checkout.CheckoutStore
 
-            class SyncComponent(private val message: SyncToggleStore.Message)
+            class CartComponent(private val message: CheckoutStore.Message)
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -120,11 +136,11 @@ class StoreTypeLeakTest {
     @Test
     fun `a state in the ui package passes`() {
         val code = """
-            package app.feature.sync.ui
+            package com.example.cart.ui
 
-            import app.feature.sync.toggle.SyncToggleStore.State
+            import com.example.cart.checkout.CheckoutStore.State
 
-            fun SyncUi(state: State) = Unit
+            fun CartUi(state: State) = Unit
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -135,11 +151,11 @@ class StoreTypeLeakTest {
     @Test
     fun `an intent in the ui package is reported`() {
         val code = """
-            package app.feature.sync.ui
+            package com.example.cart.ui
 
-            import app.feature.sync.toggle.SyncToggleStore.Intent
+            import com.example.cart.checkout.CheckoutStore.Intent
 
-            fun SyncUi(onIntent: (Intent) -> Unit) = Unit
+            fun CartUi(onIntent: (Intent) -> Unit) = Unit
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -150,11 +166,11 @@ class StoreTypeLeakTest {
     @Test
     fun `a nested type of a class without the store suffix passes`() {
         val code = """
-            package app.feature.sync.ui
+            package com.example.cart.ui
 
-            import app.feature.sync.toggle.SyncToggleExecutor.Message
+            import com.example.cart.checkout.CheckoutExecutor.Message
 
-            fun SyncUi(message: Message) = Unit
+            fun CartUi(message: Message) = Unit
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -166,11 +182,11 @@ class StoreTypeLeakTest {
     fun `custom component types are honored`() {
         val sut = StoreTypeLeak(TestConfig("componentTypes" to listOf("State", "Label")))
         val code = """
-            package app.feature.sync
+            package com.example.cart
 
-            import app.feature.sync.toggle.SyncToggleStore
+            import com.example.cart.checkout.CheckoutStore
 
-            class SyncComponent(private val intent: SyncToggleStore.Intent)
+            class CartComponent(private val intent: CheckoutStore.Intent)
         """.trimIndent()
 
         val findings = sut.lint(code)

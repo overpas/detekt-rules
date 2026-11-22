@@ -12,12 +12,12 @@ class RepeatedLazyValueTest {
     @Test
     fun `a constructor parameter whose value is read twice is reported`() {
         val code = """
-            class Settings {
+            class Preferences {
                 fun get(key: String): String = key
             }
-            class SyncStatus(private val settings: Lazy<Settings>) {
-                fun lastSync() = settings.value.get("last")
-                fun error() = settings.value.get("error")
+            class ThemeRepository(private val preferences: Lazy<Preferences>) {
+                fun accent() = preferences.value.get("accent")
+                fun fontScale() = preferences.value.get("font_scale")
             }
         """.trimIndent()
 
@@ -29,9 +29,9 @@ class RepeatedLazyValueTest {
     @Test
     fun `a value read through this is counted`() {
         val code = """
-            class SyncStatus(private val settings: Lazy<String>) {
-                fun lastSync() = this.settings.value
-                fun error() = settings.value
+            class ThemeRepository(private val preferences: Lazy<String>) {
+                fun accent() = this.preferences.value
+                fun fontScale() = preferences.value
             }
         """.trimIndent()
 
@@ -54,10 +54,10 @@ class RepeatedLazyValueTest {
     @Test
     fun `a property whose value is read twice is reported`() {
         val code = """
-            class SyncStatus {
-                private val settings: Lazy<String> = lazy { "settings" }
-                fun lastSync() = settings.value
-                fun error() = settings.value
+            class ThemeRepository {
+                private val preferences: Lazy<String> = lazy { "preferences" }
+                fun accent() = preferences.value
+                fun fontScale() = preferences.value
             }
         """.trimIndent()
 
@@ -83,9 +83,9 @@ class RepeatedLazyValueTest {
     @Test
     fun `a value read once passes`() {
         val code = """
-            class SyncStatus(settings: Lazy<String>) {
-                private val name by settings
-                fun lastSync() = name
+            class ThemeRepository(preferences: Lazy<String>) {
+                private val name by preferences
+                fun accent() = name
             }
         """.trimIndent()
 
@@ -97,10 +97,10 @@ class RepeatedLazyValueTest {
     @Test
     fun `a value read once into a private value passes`() {
         val code = """
-            class SyncStatus(settings: Lazy<String>) {
-                private val name = settings.value
-                fun lastSync() = name
-                fun error() = name
+            class ThemeRepository(preferences: Lazy<String>) {
+                private val name = preferences.value
+                fun accent() = name
+                fun fontScale() = name
             }
         """.trimIndent()
 
@@ -113,7 +113,7 @@ class RepeatedLazyValueTest {
     fun `a value of another type read twice passes`() {
         val code = """
             class Box(val value: String)
-            class SyncStatus(private val box: Box) {
+            class ThemeRepository(private val box: Box) {
                 fun first() = box.value
                 fun second() = box.value
             }

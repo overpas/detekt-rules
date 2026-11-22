@@ -16,10 +16,10 @@ class ConstructedCollaboratorTest {
     @Test
     fun `a property built from a constructor parameter is reported`() {
         val code = """
-            class WorkManager
-            class AndroidWorkQueue(private val workManager: WorkManager)
-            class Scheduler(workManager: WorkManager) {
-                private val queue = AndroidWorkQueue(workManager)
+            class JobRunner
+            class RetryingJobQueue(private val jobRunner: JobRunner)
+            class ReportScheduler(jobRunner: JobRunner) {
+                private val queue = RetryingJobQueue(jobRunner)
             }
         """.trimIndent()
 
@@ -31,10 +31,10 @@ class ConstructedCollaboratorTest {
     @Test
     fun `a property built from a constructor property is reported`() {
         val code = """
-            class WorkManager
-            class AndroidWorkQueue(private val workManager: WorkManager)
-            class Scheduler(private val workManager: WorkManager) {
-                private val queue = AndroidWorkQueue(workManager = workManager)
+            class JobRunner
+            class RetryingJobQueue(private val jobRunner: JobRunner)
+            class ReportScheduler(private val jobRunner: JobRunner) {
+                private val queue = RetryingJobQueue(jobRunner = jobRunner)
             }
         """.trimIndent()
 
@@ -46,11 +46,11 @@ class ConstructedCollaboratorTest {
     @Test
     fun `a nested constructor call is reported once`() {
         val code = """
-            class WorkManager
-            class Retrying(private val queue: AndroidWorkQueue)
-            class AndroidWorkQueue(private val workManager: WorkManager)
-            class Scheduler(workManager: WorkManager) {
-                private val queue = Retrying(AndroidWorkQueue(workManager))
+            class JobRunner
+            class Retrying(private val queue: RetryingJobQueue)
+            class RetryingJobQueue(private val jobRunner: JobRunner)
+            class ReportScheduler(jobRunner: JobRunner) {
+                private val queue = Retrying(RetryingJobQueue(jobRunner))
             }
         """.trimIndent()
 
@@ -62,10 +62,10 @@ class ConstructedCollaboratorTest {
     @Test
     fun `a lazy property built from a constructor parameter is reported`() {
         val code = """
-            class WorkManager
-            class AndroidWorkQueue(private val workManager: WorkManager)
-            class Scheduler(private val workManager: WorkManager) {
-                private val queue by lazy { AndroidWorkQueue(workManager) }
+            class JobRunner
+            class RetryingJobQueue(private val jobRunner: JobRunner)
+            class ReportScheduler(private val jobRunner: JobRunner) {
+                private val queue by lazy { RetryingJobQueue(jobRunner) }
             }
         """.trimIndent()
 
@@ -77,13 +77,13 @@ class ConstructedCollaboratorTest {
     @Test
     fun `an init block that builds a class from a constructor parameter is reported`() {
         val code = """
-            class WorkManager
-            class AndroidWorkQueue(private val workManager: WorkManager) {
+            class JobRunner
+            class RetryingJobQueue(private val jobRunner: JobRunner) {
                 fun start() = Unit
             }
-            class Scheduler(workManager: WorkManager) {
+            class ReportScheduler(jobRunner: JobRunner) {
                 init {
-                    AndroidWorkQueue(workManager).start()
+                    RetryingJobQueue(jobRunner).start()
                 }
             }
         """.trimIndent()
@@ -96,9 +96,9 @@ class ConstructedCollaboratorTest {
     @Test
     fun `a property built without constructor parameters passes`() {
         val code = """
-            class AndroidWorkQueue(private val name: String)
-            class Scheduler(private val name: String) {
-                private val queue = AndroidWorkQueue("work")
+            class RetryingJobQueue(private val name: String)
+            class ReportScheduler(private val name: String) {
+                private val queue = RetryingJobQueue("work")
             }
         """.trimIndent()
 
@@ -110,11 +110,11 @@ class ConstructedCollaboratorTest {
     @Test
     fun `a function call with a constructor parameter passes`() {
         val code = """
-            class WorkManager
-            class AndroidWorkQueue(private val workManager: WorkManager)
-            fun queueOf(workManager: WorkManager) = AndroidWorkQueue(workManager)
-            class Scheduler(workManager: WorkManager) {
-                private val queue = queueOf(workManager)
+            class JobRunner
+            class RetryingJobQueue(private val jobRunner: JobRunner)
+            fun queueFor(jobRunner: JobRunner) = RetryingJobQueue(jobRunner)
+            class ReportScheduler(jobRunner: JobRunner) {
+                private val queue = queueFor(jobRunner)
             }
         """.trimIndent()
 
@@ -200,10 +200,10 @@ class ConstructedCollaboratorTest {
     @Test
     fun `a constructor call in a function passes`() {
         val code = """
-            class WorkManager
-            class AndroidWorkQueue(private val workManager: WorkManager)
-            class Scheduler(private val workManager: WorkManager) {
-                fun queue() = AndroidWorkQueue(workManager)
+            class JobRunner
+            class RetryingJobQueue(private val jobRunner: JobRunner)
+            class ReportScheduler(private val jobRunner: JobRunner) {
+                fun queue() = RetryingJobQueue(jobRunner)
             }
         """.trimIndent()
 

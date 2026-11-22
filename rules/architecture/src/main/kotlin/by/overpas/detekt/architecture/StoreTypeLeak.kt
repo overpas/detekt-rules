@@ -15,7 +15,7 @@ class StoreTypeLeak(config: Config) :
     Rule(
         config,
         "The nested types of a store must stay near the store. Intent, Action and Message stay in the package " +
-            "of the store and its handlers. The component can also use Intent, State and Label, " +
+            "of the store and its allowed subpackages. The component can also use Intent, State and Label, " +
             "and the UI can use State and Label.",
     ) {
 
@@ -27,8 +27,8 @@ class StoreTypeLeak(config: Config) :
         listOf(INTENT, "Action", "Message", STATE, LABEL),
     ) { it.toSet() }
 
-    @Configuration("name of the subpackage of the store package that holds the handlers")
-    private val handlerPackage: String by config("handlers")
+    @Configuration("subpackages of the store package that can use all the nested types of the store")
+    private val allowedSubpackages: List<String> by config(emptyList())
 
     @Configuration("nested types of a store that the component package can also use")
     private val componentTypes: Set<String> by config(listOf(INTENT, STATE, LABEL)) { it.toSet() }
@@ -46,12 +46,12 @@ class StoreTypeLeak(config: Config) :
             .distinctBy { it.store to it.type }
             .filterNot { it.isAllowedIn(file.packageFqName) }
             .forEach { reference ->
-                val places = listOfNotNull(
-                    "the store package",
-                    "`$handlerPackage`",
-                    "the component package".takeIf { reference.type in componentTypes },
-                    "`$uiPackage`".takeIf { reference.type in uiTypes },
-                )
+                val places = listOf("the store package") +
+                    allowedSubpackages.map { "`$it`" } +
+                    listOfNotNull(
+                        "the component package".takeIf { reference.type in componentTypes },
+                        "`$uiPackage`".takeIf { reference.type in uiTypes },
+                    )
                 report(
                     Finding(
                         Entity.from(reference.element),
@@ -66,7 +66,7 @@ class StoreTypeLeak(config: Config) :
         val storePackage = store.parent()
         val componentPackages = setOf(storePackage, storePackage.parent())
         val isInStore = filePackage == storePackage ||
-            filePackage.isSubpackageOf(storePackage.child(Name.identifier(handlerPackage)))
+            allowedSubpackages.any { filePackage.isSubpackageOf(storePackage.child(Name.identifier(it))) }
         val isInComponent = type in componentTypes && filePackage in componentPackages
         val isInUi = type in uiTypes &&
             componentPackages.any { filePackage.isSubpackageOf(it.child(Name.identifier(uiPackage))) }

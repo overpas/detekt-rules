@@ -13,10 +13,10 @@ class HardcodedUrlTest {
     @Test
     fun `an https url is reported`() {
         val code = """
-            package app.auth
+            package com.example.shop
 
-            class UserInfoApi {
-                private val url = "https://openidconnect.googleapis.com/v1/userinfo"
+            class OrderApi {
+                private val url = "https://api.example.com/v1/orders"
             }
         """.trimIndent()
 
@@ -28,7 +28,7 @@ class HardcodedUrlTest {
     @Test
     fun `an http url inside a template is reported`() {
         val code = """
-            package app.auth
+            package com.example.shop
 
             fun endpoint(path: String) = "http://localhost:8080/${'$'}path"
         """.trimIndent()
@@ -41,10 +41,10 @@ class HardcodedUrlTest {
     @Test
     fun `a url in a di package passes`() {
         val code = """
-            package app.auth.di
+            package com.example.shop.di
 
-            object AuthUrls {
-                const val USER_INFO = "https://openidconnect.googleapis.com/v1/userinfo"
+            object ShopUrls {
+                const val ORDERS = "https://api.example.com/v1/orders"
             }
         """.trimIndent()
 
@@ -56,7 +56,7 @@ class HardcodedUrlTest {
     @Test
     fun `a string without a url passes`() {
         val code = """
-            package app.auth
+            package com.example.shop
 
             val scheme = "https"
         """.trimIndent()
@@ -70,9 +70,9 @@ class HardcodedUrlTest {
     fun `custom allowed packages are honored`() {
         val sut = HardcodedUrl(TestConfig("allowedPackages" to listOf("config")))
         val code = """
-            package app.config
+            package com.example.config
 
-            val userInfo = "https://openidconnect.googleapis.com/v1/userinfo"
+            val orders = "https://api.example.com/v1/orders"
         """.trimIndent()
 
         val findings = sut.lint(code)

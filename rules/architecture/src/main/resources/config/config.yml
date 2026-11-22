@@ -40,7 +40,7 @@ overpas-architecture:
     excludes: ['**/di/**']
     storeSuffix: 'Store'
     storeTypes: ['Intent', 'Action', 'Message', 'State', 'Label']
-    handlerPackage: 'handlers'
+    allowedSubpackages: []
     componentTypes: ['Intent', 'State', 'Label']
     uiPackage: 'ui'
     uiTypes: ['State', 'Label']

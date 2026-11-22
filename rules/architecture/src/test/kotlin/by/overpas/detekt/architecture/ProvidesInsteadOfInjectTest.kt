@@ -18,11 +18,11 @@ class ProvidesInsteadOfInjectTest {
     fun `a provider that passes its parameters to a constructor is reported`() {
         val code = """
             annotation class Provides
-            class Api
-            class Repository(private val api: Api)
+            class OrderApi
+            class OrderRepository(private val api: OrderApi)
             object Providers {
                 @Provides
-                fun repository(api: Api): Repository = Repository(api)
+                fun repository(api: OrderApi): OrderRepository = OrderRepository(api)
             }
         """.trimIndent()
 
@@ -35,19 +35,19 @@ class ProvidesInsteadOfInjectTest {
     fun `a provider that returns an interface proposes a binding`() {
         val code = """
             annotation class Provides
-            class Api
-            interface Repository
-            class DefaultRepository(private val api: Api) : Repository
+            class OrderApi
+            interface OrderRepository
+            class HttpOrderRepository(private val api: OrderApi) : OrderRepository
             object Providers {
                 @Provides
-                fun repository(api: Api): Repository {
-                    return DefaultRepository(api = api)
+                fun repository(api: OrderApi): OrderRepository {
+                    return HttpOrderRepository(api = api)
                 }
             }
         """.trimIndent()
         val expected = listOf(
-            "`repository` only passes its parameters to `DefaultRepository`. " +
-                "Put `@Inject` on `DefaultRepository` and bind it to `Repository` with `@Binds`.",
+            "`repository` only passes its parameters to `HttpOrderRepository`. " +
+                "Put `@Inject` on `HttpOrderRepository` and bind it to `OrderRepository` with `@Binds`.",
         )
 
         val messages = sut.lintWithContext(environment, code).map(Finding::message)
@@ -59,10 +59,10 @@ class ProvidesInsteadOfInjectTest {
     fun `a provider without parameters that calls a constructor is reported`() {
         val code = """
             annotation class Provides
-            class Clock
+            class PriceFormatter
             object Providers {
                 @Provides
-                fun clock(): Clock = Clock()
+                fun priceFormatter(): PriceFormatter = PriceFormatter()
             }
         """.trimIndent()
 
@@ -75,10 +75,10 @@ class ProvidesInsteadOfInjectTest {
     fun `a provider that passes other arguments passes`() {
         val code = """
             annotation class Provides
-            class Api(private val url: String)
+            class OrderApi(private val path: String)
             object Providers {
                 @Provides
-                fun api(): Api = Api("https://example.com")
+                fun api(): OrderApi = OrderApi("orders")
             }
         """.trimIndent()
 
@@ -91,12 +91,12 @@ class ProvidesInsteadOfInjectTest {
     fun `a provider that configures the instance passes`() {
         val code = """
             annotation class Provides
-            class Api {
-                fun configured(): Api = this
+            class OrderApi {
+                fun configured(): OrderApi = this
             }
             object Providers {
                 @Provides
-                fun api(): Api = Api().configured()
+                fun api(): OrderApi = OrderApi().configured()
             }
         """.trimIndent()
 
@@ -109,11 +109,11 @@ class ProvidesInsteadOfInjectTest {
     fun `a provider that calls a function passes`() {
         val code = """
             annotation class Provides
-            class Api
-            fun createApi(): Api = Api()
+            class OrderApi
+            fun createOrderApi(): OrderApi = OrderApi()
             object Providers {
                 @Provides
-                fun api(): Api = createApi()
+                fun api(): OrderApi = createOrderApi()
             }
         """.trimIndent()
 
@@ -140,9 +140,9 @@ class ProvidesInsteadOfInjectTest {
     @Test
     fun `a function without a provider annotation passes`() {
         val code = """
-            class Clock
+            class PriceFormatter
             object Providers {
-                fun clock(): Clock = Clock()
+                fun priceFormatter(): PriceFormatter = PriceFormatter()
             }
         """.trimIndent()
 
@@ -156,10 +156,10 @@ class ProvidesInsteadOfInjectTest {
         val sut = ProvidesInsteadOfInject(TestConfig("providerAnnotations" to listOf("Creates")))
         val code = """
             annotation class Creates
-            class Clock
+            class PriceFormatter
             object Providers {
                 @Creates
-                fun clock(): Clock = Clock()
+                fun priceFormatter(): PriceFormatter = PriceFormatter()
             }
         """.trimIndent()
 

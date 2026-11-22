@@ -136,16 +136,16 @@ The rule reports a constructor parameter whose type is a class that implements a
 Fails:
 
 ```kotlin
-interface NetworkClient
-class KtorNetworkClient : NetworkClient
-class Repository(private val client: KtorNetworkClient)
+interface PaymentGateway
+class CardPaymentGateway : PaymentGateway
+class Checkout(private val gateway: CardPaymentGateway)
 ```
 
 Passes:
 
 ```kotlin
-interface NetworkClient
-class Repository(private val client: NetworkClient)
+interface PaymentGateway
+class Checkout(private val gateway: PaymentGateway)
 ```
 
 #### `ConstructedCollaborator`
@@ -161,19 +161,19 @@ The rule reports a property initializer, a property delegate or an `init` block 
 Fails:
 
 ```kotlin
-class Scheduler(workManager: WorkManager) {
-    private val queue = AndroidWorkQueue(workManager)
+class ReportScheduler(jobRunner: JobRunner) {
+    private val queue = RetryingJobQueue(jobRunner)
 }
 
-class Scheduler(workManager: WorkManager) {
-    private val queue by lazy { AndroidWorkQueue(workManager) }
+class ReportScheduler(jobRunner: JobRunner) {
+    private val queue by lazy { RetryingJobQueue(jobRunner) }
 }
 ```
 
 Passes:
 
 ```kotlin
-class Scheduler(private val queue: WorkQueue)
+class ReportScheduler(private val queue: JobQueue)
 
 class Parts(names: List<String>, cost: Cost) {
     private val parts = names.map { Part(it, cost) }
@@ -193,20 +193,20 @@ The rule reports a string with `http://` or `https://` in a file whose package h
 Fails:
 
 ```kotlin
-package app.auth
+package com.example.shop
 
-class UserInfoApi(private val client: NetworkClient) {
-    suspend fun get() = client.get("https://openidconnect.googleapis.com/v1/userinfo")
+class OrderApi(private val http: HttpTransport) {
+    suspend fun orders() = http.get("https://api.example.com/v1/orders")
 }
 ```
 
 Passes:
 
 ```kotlin
-package app.auth.di
+package com.example.shop.di
 
-object AuthUrls {
-    const val USER_INFO = "https://openidconnect.googleapis.com/v1/userinfo"
+object ShopUrls {
+    const val ORDERS = "https://api.example.com/v1/orders"
 }
 ```
 
@@ -340,6 +340,8 @@ object Providers {
 
 A DI provider must not only pass its parameters to the constructor of a project class. Put `@Inject` on the class, and bind it to its interface with `@Binds`. Needs type resolution, so the plain `detekt` task skips it.
 
+The rule is for the DI frameworks that support the JSR-330 `@Inject` annotation and the Dagger-style `@Provides` and `@Binds` annotations, for example Dagger, Hilt, Metro and kotlin-inject.
+
 The rule reports a provider whose body is one constructor call, when each argument of the call is a parameter of the provider. When the provider returns an interface, the message proposes `@Binds`. A project class is a class in the sources under analysis, or a class whose package starts with the same `rootPackageDepth` segments as the package of the checked file. A provider of a library class passes, because the library class cannot get `@Inject`.
 
 | Option | Default | Description |
@@ -350,22 +352,26 @@ The rule reports a provider whose body is one constructor call, when each argume
 Fails:
 
 ```kotlin
-@BindingContainer
-object RepositoryBindings {
+@Module
+object OrderModule {
     @Provides
-    fun repository(api: Api): Repository = DefaultRepository(api)
+    fun orderRepository(api: OrderApi): OrderRepository = HttpOrderRepository(api)
 }
 ```
 
 Passes:
 
 ```kotlin
-@Inject
-@ContributesBinding(AppScope::class)
-class DefaultRepository(private val api: Api) : Repository
+class HttpOrderRepository @Inject constructor(private val api: OrderApi) : OrderRepository
 
-@BindingContainer
-object ClientBindings {
+@Module
+interface OrderModule {
+    @Binds
+    fun orderRepository(repository: HttpOrderRepository): OrderRepository
+}
+
+@Module
+object ClientModule {
     @Provides
     fun client(engine: HttpClientEngine): HttpClient = HttpClient(engine)
 }
@@ -407,15 +413,15 @@ data class Transfer(val from: Account, val to: Account)
 
 #### `StoreTypeLeak`
 
-The nested types of a store must stay near the store. Intent, Action and Message stay in the package of the store and its handlers. The component can also use Intent, State and Label, and the UI can use State and Label.
+The nested types of a store must stay near the store. Intent, Action and Message stay in the package of the store and its allowed subpackages. The component can also use Intent, State and Label, and the UI can use State and Label.
 
-A store is a type whose name ends with `storeSuffix`. The rule finds its nested types in imports and in qualified names, such as `SyncStore.Message`, and reports each of them once in a file. The handlers are in the `handlerPackage` subpackage of the store package. The component package is the store package or its parent. The UI is in the `uiPackage` subpackage of the component package. The default config excludes the `di` packages, because the bindings use all the types.
+A store is a type whose name ends with `storeSuffix`. The rule finds its nested types in imports and in qualified names, such as `CheckoutStore.Message`, and reports each of them once in a file. The store package and its `allowedSubpackages` can use all the nested types. The component package is the store package or its parent. The UI is in the `uiPackage` subpackage of the component package. The default config excludes the `di` packages, because the bindings use all the types.
 
 | Option | Default | Description |
 |---|---|---|
 | `storeSuffix` | `'Store'` | Suffix of the names of the store types |
 | `storeTypes` | `['Intent', 'Action', 'Message', 'State', 'Label']` | Names of the nested types of a store that the rule checks |
-| `handlerPackage` | `'handlers'` | Name of the subpackage of the store package that holds the handlers |
+| `allowedSubpackages` | `[]` | Subpackages of the store package that can use all the nested types of the store |
 | `componentTypes` | `['Intent', 'State', 'Label']` | Nested types of a store that the component package can also use |
 | `uiPackage` | `'ui'` | Name of the subpackage of the component package that holds the UI |
 | `uiTypes` | `['State', 'Label']` | Nested types of a store that the UI package can also use |
@@ -423,21 +429,33 @@ A store is a type whose name ends with `storeSuffix`. The rule finds its nested 
 Fails:
 
 ```kotlin
-package app.feature.sync.overview
+package com.example.cart.totals
 
-import app.feature.sync.toggle.SyncToggleStore.Message
+import com.example.cart.checkout.CheckoutStore.Message
 
-class SyncOverviewLoader(private val dispatch: (Message) -> Unit)
+class TotalsLoader(private val dispatch: (Message) -> Unit)
+
+package com.example.cart.ui
+
+import com.example.cart.checkout.CheckoutStore.Intent
+
+fun CartUi(onIntent: (Intent) -> Unit)
 ```
 
 Passes:
 
 ```kotlin
-package app.feature.sync.toggle.handlers
+package com.example.cart.checkout
 
-import app.feature.sync.toggle.SyncToggleStore.Message
+class CheckoutExecutor(private val dispatch: (CheckoutStore.Message) -> Unit)
 
-class OnResumeHandler(private val dispatch: (Message) -> Unit)
+package com.example.cart
+
+import com.example.cart.checkout.CheckoutStore
+
+class CartComponent(private val store: CheckoutStore) {
+    fun onPayClick() = store.accept(CheckoutStore.Intent.OnPayClick)
+}
 ```
 
 #### `WeightedComplexity`
@@ -1097,7 +1115,7 @@ dependencies {
 
 #### `CollaboratorNameMismatch`
 
-The name of a constructor property must contain the last word of the name of its type. `client: NetworkClient` tells what the property is, `network: NetworkClient` does not. Needs type resolution, so the plain `detekt` task skips it.
+The name of a constructor property must contain the last word of the name of its type. `gateway: PaymentGateway` tells what the property is, `payments: PaymentGateway` does not. Needs type resolution, so the plain `detekt` task skips it.
 
 The name does not have to end with the full type name, and the check ignores case. Constructor parameters without `val` or `var`, function types, type parameters and the types of the excluded packages pass.
 
@@ -1109,24 +1127,24 @@ The name does not have to end with the full type name, and the check ignores cas
 Fails:
 
 ```kotlin
-class UserApi(private val network: NetworkClient)
+class Checkout(private val payments: PaymentGateway)
 
-class Sync(private val backups: DriveBackupRepository)
+class Billing(private val invoices: InvoiceArchiveRepository)
 ```
 
 Passes:
 
 ```kotlin
-class UserApi(private val client: NetworkClient)
+class Checkout(private val gateway: PaymentGateway)
 
-class Sync(private val remoteOtpDb: OtpDb)
+class Catalog(private val cachedPriceDb: PriceDb)
 ```
 
 #### `ConversionNameMismatch`
 
-The return type of a `toX` or an `asX` function must contain `X` in its name. `toMessage(): SyncAlert` promises a message but gives an alert.
+The return type of a `toX` or an `asX` function must contain `X` in its name. `toInvoice(): Receipt` promises an invoice but gives a receipt.
 
-The rule checks the explicit return type only. The check ignores case, and the qualifiers and type arguments count, so `toStoreState(): SyncStore.State` and `toDriveFile(): Result<DriveFile>` pass. A return type that is a type parameter of the function passes.
+The rule checks the explicit return type only. The check ignores case, and the qualifiers and type arguments count, so `toStoreState(): CartStore.State` and `toPage(): Result<Page>` pass. A return type that is a type parameter of the function passes.
 
 | Option | Default | Description |
 |---|---|---|
@@ -1135,15 +1153,15 @@ The rule checks the explicit return type only. The check ignores case, and the q
 Fails:
 
 ```kotlin
-fun SyncError.toMessage(): SyncAlert?
+fun Order.toInvoice(): Receipt?
 
-fun String.asUser(): Account
+fun String.asDiscount(): Coupon
 ```
 
 Passes:
 
 ```kotlin
-fun SyncError.toAlert(): SyncAlert?
+fun Order.toReceipt(): Receipt?
 
 fun String.toIntOrNull(): Int?
 ```
@@ -1365,19 +1383,19 @@ No options.
 Fails:
 
 ```kotlin
-class SyncStatus(private val settings: Lazy<Settings>) {
-    fun lastSync() = settings.value.getLong("last")
-    fun error() = settings.value.getString("error")
+class ThemeRepository(private val preferences: Lazy<Preferences>) {
+    fun accent() = preferences.value.getString("accent")
+    fun fontScale() = preferences.value.getFloat("font_scale")
 }
 ```
 
 Passes:
 
 ```kotlin
-class SyncStatus(lazySettings: Lazy<Settings>) {
-    private val settings by lazySettings
-    fun lastSync() = settings.getLong("last")
-    fun error() = settings.getString("error")
+class ThemeRepository(lazyPreferences: Lazy<Preferences>) {
+    private val preferences by lazyPreferences
+    fun accent() = preferences.getString("accent")
+    fun fontScale() = preferences.getFloat("font_scale")
 }
 ```
 

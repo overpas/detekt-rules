@@ -14,7 +14,7 @@ class ConversionNameMismatch(config: Config) :
     Rule(
         config,
         "The return type of a `toX` or an `asX` function must contain `X` in its name. " +
-            "`toMessage(): SyncAlert` promises a message but gives an alert.",
+            "`toInvoice(): Receipt` promises an invoice but gives a receipt.",
     ) {
 
     @Configuration("suffixes of a conversion name that the return type does not have to contain")

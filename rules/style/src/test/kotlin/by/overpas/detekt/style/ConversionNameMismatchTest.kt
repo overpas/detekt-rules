@@ -13,9 +13,9 @@ class ConversionNameMismatchTest {
     @Test
     fun `a to function that returns another type is reported`() {
         val code = """
-            class SyncAlert
-            class SyncError {
-                fun toMessage(): SyncAlert? = null
+            class Receipt
+            class Order {
+                fun toInvoice(): Receipt? = null
             }
         """.trimIndent()
 
@@ -27,8 +27,8 @@ class ConversionNameMismatchTest {
     @Test
     fun `an as function that returns another type is reported`() {
         val code = """
-            class Account
-            fun String.asUser(): Account = Account()
+            class Coupon
+            fun String.asDiscount(): Coupon = Coupon()
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -39,8 +39,8 @@ class ConversionNameMismatchTest {
     @Test
     fun `a to function that returns its type passes`() {
         val code = """
-            class GoogleDriveSyncState
-            fun Int.toSyncState(): GoogleDriveSyncState = GoogleDriveSyncState()
+            class DiscountPriceLabel
+            fun Int.toPriceLabel(): DiscountPriceLabel = DiscountPriceLabel()
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -51,10 +51,10 @@ class ConversionNameMismatchTest {
     @Test
     fun `a qualified return type passes`() {
         val code = """
-            object SyncStore {
+            object CartStore {
                 class State
             }
-            fun Int.toStoreState(): SyncStore.State = SyncStore.State()
+            fun Int.toStoreState(): CartStore.State = CartStore.State()
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -65,8 +65,8 @@ class ConversionNameMismatchTest {
     @Test
     fun `a type argument with the converted name passes`() {
         val code = """
-            class DriveFile
-            fun String.toDriveFile(): Result<DriveFile> = Result.success(DriveFile())
+            class Page
+            fun String.toPage(): Result<Page> = Result.success(Page())
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -77,7 +77,7 @@ class ConversionNameMismatchTest {
     @Test
     fun `a type argument without the converted name is reported`() {
         val code = """
-            fun String.toAccessToken(): Result<String> = Result.success(this)
+            fun String.toToken(): Result<String> = Result.success(this)
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -110,8 +110,8 @@ class ConversionNameMismatchTest {
     @Test
     fun `a function without an explicit return type passes`() {
         val code = """
-            class SyncAlert
-            fun Int.toMessage() = SyncAlert()
+            class Receipt
+            fun Int.toInvoice() = Receipt()
         """.trimIndent()
 
         val findings = sut.lint(code)

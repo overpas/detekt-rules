@@ -20,7 +20,7 @@ class CollaboratorNameMismatch(config: Config) :
     Rule(
         config,
         "The name of a constructor property must contain the last word of the name of its type. " +
-            "`client: NetworkClient` tells what the property is, `network: NetworkClient` does not.",
+            "`gateway: PaymentGateway` tells what the property is, `payments: PaymentGateway` does not.",
     ),
     RequiresAnalysisApi {
 

@@ -16,9 +16,9 @@ class ConcreteCollaboratorTest {
     @Test
     fun `a parameter of a class that implements a project interface is reported`() {
         val code = """
-            interface NetworkClient
-            class KtorNetworkClient : NetworkClient
-            class Repository(private val client: KtorNetworkClient)
+            interface PaymentGateway
+            class CardPaymentGateway : PaymentGateway
+            class Checkout(private val gateway: CardPaymentGateway)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)
@@ -29,10 +29,10 @@ class ConcreteCollaboratorTest {
     @Test
     fun `a parameter of a class that inherits a project interface from its superclass is reported`() {
         val code = """
-            interface NetworkClient
-            abstract class BaseNetworkClient : NetworkClient
-            class KtorNetworkClient : BaseNetworkClient()
-            class Repository(private val client: KtorNetworkClient?)
+            interface PaymentGateway
+            abstract class BasePaymentGateway : PaymentGateway
+            class CardPaymentGateway : BasePaymentGateway()
+            class Checkout(private val gateway: CardPaymentGateway?)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)
@@ -43,8 +43,8 @@ class ConcreteCollaboratorTest {
     @Test
     fun `a parameter of an interface passes`() {
         val code = """
-            interface NetworkClient
-            class Repository(private val client: NetworkClient)
+            interface PaymentGateway
+            class Checkout(private val gateway: PaymentGateway)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)
@@ -56,7 +56,7 @@ class ConcreteCollaboratorTest {
     fun `a parameter of a class without a project interface passes`() {
         val code = """
             class Clock
-            class Repository(private val clock: Clock, private val names: ArrayList<String>)
+            class Checkout(private val clock: Clock, private val names: ArrayList<String>)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)
@@ -67,9 +67,9 @@ class ConcreteCollaboratorTest {
     @Test
     fun `a parameter of a data class passes`() {
         val code = """
-            interface Credentials
-            data class Password(val value: String) : Credentials
-            class Session(private val password: Password)
+            interface Discount
+            data class Coupon(val code: String) : Discount
+            class Checkout(private val coupon: Coupon)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)
@@ -80,9 +80,9 @@ class ConcreteCollaboratorTest {
     @Test
     fun `a data class constructor passes`() {
         val code = """
-            interface NetworkClient
-            class KtorNetworkClient : NetworkClient
-            data class Clients(val client: KtorNetworkClient)
+            interface PaymentGateway
+            class CardPaymentGateway : PaymentGateway
+            data class Gateways(val gateway: CardPaymentGateway)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)
@@ -94,9 +94,9 @@ class ConcreteCollaboratorTest {
     fun `a data class constructor is reported when data classes are not ignored`() {
         val sut = ConcreteCollaborator(TestConfig("areDataClassesIgnored" to false))
         val code = """
-            interface NetworkClient
-            class KtorNetworkClient : NetworkClient
-            data class Clients(val client: KtorNetworkClient)
+            interface PaymentGateway
+            class CardPaymentGateway : PaymentGateway
+            data class Gateways(val gateway: CardPaymentGateway)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)
@@ -107,10 +107,10 @@ class ConcreteCollaboratorTest {
     @Test
     fun `a secondary constructor is reported`() {
         val code = """
-            interface NetworkClient
-            class KtorNetworkClient : NetworkClient
-            class Repository {
-                constructor(client: KtorNetworkClient)
+            interface PaymentGateway
+            class CardPaymentGateway : PaymentGateway
+            class Checkout {
+                constructor(gateway: CardPaymentGateway)
             }
         """.trimIndent()
 

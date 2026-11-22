@@ -16,8 +16,8 @@ class CollaboratorNameMismatchTest {
     @Test
     fun `a name without the last word of its type is reported`() {
         val code = """
-            interface NetworkClient
-            class UserApi(private val network: NetworkClient)
+            interface PaymentGateway
+            class Checkout(private val payments: PaymentGateway)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)
@@ -28,8 +28,8 @@ class CollaboratorNameMismatchTest {
     @Test
     fun `a name after the first word of its type is reported`() {
         val code = """
-            interface DriveBackupRepository
-            class Sync(private val backups: DriveBackupRepository)
+            interface InvoiceArchiveRepository
+            class Billing(private val invoices: InvoiceArchiveRepository)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)
@@ -40,9 +40,9 @@ class CollaboratorNameMismatchTest {
     @Test
     fun `a name with the last word of its type passes`() {
         val code = """
-            interface NetworkClient
-            interface OtpDb
-            class UserApi(private val client: NetworkClient, private val remoteOtpDb: OtpDb?)
+            interface PaymentGateway
+            interface PriceDb
+            class Checkout(private val gateway: PaymentGateway, private val cachedPriceDb: PriceDb?)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)
@@ -53,8 +53,8 @@ class CollaboratorNameMismatchTest {
     @Test
     fun `a name with an acronym of its type passes`() {
         val code = """
-            interface OAuthClient
-            class SignIn(private val oAuthClient: OAuthClient)
+            interface SSOProvider
+            class SignIn(private val ssoProvider: SSOProvider)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)
@@ -65,7 +65,7 @@ class CollaboratorNameMismatchTest {
     @Test
     fun `primitive, stdlib and function types pass`() {
         val code = """
-            class Settings(
+            class RetryPolicy(
                 private val retries: Int,
                 private val names: List<String>,
                 private val onChange: () -> Unit,
@@ -92,8 +92,8 @@ class CollaboratorNameMismatchTest {
     @Test
     fun `a constructor parameter that is not a property passes`() {
         val code = """
-            interface NetworkClient
-            class UserApi(network: NetworkClient)
+            interface PaymentGateway
+            class Checkout(payments: PaymentGateway)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)
@@ -104,8 +104,8 @@ class CollaboratorNameMismatchTest {
     @Test
     fun `a data class passes`() {
         val code = """
-            class GoogleAccount
-            data class Session(val email: GoogleAccount)
+            class EmailAddress
+            data class Contact(val primary: EmailAddress)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)
@@ -117,8 +117,8 @@ class CollaboratorNameMismatchTest {
     fun `a data class is reported when data classes are not ignored`() {
         val sut = CollaboratorNameMismatch(TestConfig("areDataClassesIgnored" to false))
         val code = """
-            class GoogleAccount
-            data class Session(val email: GoogleAccount)
+            class EmailAddress
+            data class Contact(val primary: EmailAddress)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)
@@ -130,7 +130,7 @@ class CollaboratorNameMismatchTest {
     fun `a type from a package that is not excluded is reported`() {
         val sut = CollaboratorNameMismatch(TestConfig("excludedPackages" to emptyList<String>()))
         val code = """
-            class Settings(private val retries: Int)
+            class RetryPolicy(private val retries: Int)
         """.trimIndent()
 
         val findings = sut.lintWithContext(environment, code)

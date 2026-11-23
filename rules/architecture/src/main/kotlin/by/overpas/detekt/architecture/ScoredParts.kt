@@ -42,12 +42,12 @@ internal class ClassParts(
 
     override val name: String = classOrObject.nameAsSafeName.asString()
 
-    override val parts: List<Part> by lazy { members + nested.map { it.asNested() } }
+    override val parts: List<Part> by lazy { members + nested.map { it.nestedPart() } }
 
     fun flat(): Part =
         Part(name, members + nested.map { it.flat() })
 
-    private fun asNested(): Part =
+    private fun nestedPart(): Part =
         if (classOrObject is KtClass && classOrObject.isInner()) Part(name, parts) else cost.ofNestedClass(name)
 }
 

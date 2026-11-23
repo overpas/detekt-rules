@@ -2,6 +2,20 @@ overpas-architecture:
   active: true
   CatchWithoutResultType:
     active: false
+  ConcreteCollaborator:
+    active: true
+    excludes: ['**/test/**', '**/*Test/**']
+    rootPackageDepth: 2
+    areDataClassesIgnored: true
+  ConstructedCollaborator:
+    active: false
+    excludes: ['**/test/**', '**/*Test/**']
+    excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax', 'android', 'androidx']
+  HardcodedUrl:
+    active: false
+    excludes: ['**/test/**', '**/*Test/**', '**/*.gradle.kts']
+    allowedPackageSegments: ['di']
+    allowedUrlPrefixes: ['http://schemas.android.com/', 'http://www.w3.org/']
   HiddenAbstraction:
     active: true
   LowCohesion:
@@ -13,11 +27,24 @@ overpas-architecture:
   NonInjectedDependency:
     active: true
     providerAnnotations: ['Provides', 'Binds']
+  ProvidesInsteadOfInject:
+    active: true
+    providerAnnotations: ['Provides']
+    rootPackageDepth: 2
   RepeatedCollaboratorType:
     active: true
     excludedTypes: ['kotlin.Boolean', 'kotlin.Char', 'kotlin.Number', 'kotlin.UByte', 'kotlin.UShort', 'kotlin.UInt', 'kotlin.ULong', 'kotlin.CharSequence', 'kotlin.collections.Iterable', 'kotlin.collections.Map', 'kotlin.Array', 'kotlin.BooleanArray', 'kotlin.CharArray', 'kotlin.ByteArray', 'kotlin.ShortArray', 'kotlin.IntArray', 'kotlin.LongArray', 'kotlin.FloatArray', 'kotlin.DoubleArray', 'kotlin.sequences.Sequence', 'kotlin.Function', 'kotlin.Enum', 'kotlin.time.Duration', 'kotlin.time.Instant', 'kotlin.uuid.Uuid', 'kotlin.coroutines.CoroutineContext', 'kotlinx.coroutines.CoroutineDispatcher']
     ignoredSupertypes: ['kotlin.Any', 'kotlin.Comparable', 'java.io.Serializable']
     areDataClassesIgnored: true
+  StoreTypeLeak:
+    active: false
+    excludes: ['**/test/**', '**/*Test/**']
+    storeSuffix: 'Store'
+    storeTypes: ['Intent', 'Action', 'Message', 'State', 'Label']
+    allowedSubpackages: []
+    componentTypes: ['Intent', 'State', 'Label']
+    uiPackage: 'ui'
+    uiTypes: ['State', 'Label']
   WeightedComplexity:
     active: true
     excludes: ['**/build/**', '**/generated/**']

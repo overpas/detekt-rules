@@ -1,5 +1,14 @@
 overpas-style:
   active: true
+  CollaboratorNameMismatch:
+    active: false
+    excludes: ['**/test/**', '**/*Test/**']
+    excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax', 'dagger']
+    areDataClassesIgnored: true
+  ConversionNameMismatch:
+    active: false
+    ignoredSuffixes: ['OrNull', 'OrThrow', 'OrDefault', 'OrElse', 'OrEmpty']
+    ignoredReceiverTypes: ['String', 'Boolean', 'Byte', 'Short', 'Int', 'Long', 'Float', 'Double', 'Char']
   ExpressionBodyOnNewLine:
     active: true
   FileStructure:
@@ -20,6 +29,8 @@ overpas-style:
   RedundantFunctionName:
     active: true
     ignoredWords: ['And', 'At', 'By', 'For', 'From', 'In', 'Of', 'On', 'Or', 'To', 'With']
+  RepeatedLazyValue:
+    active: true
   SetupWithoutApply:
     active: true
     minUseCount: 2

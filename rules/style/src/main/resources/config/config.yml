@@ -2,7 +2,7 @@ overpas-style:
   active: true
   CollaboratorNameMismatch:
     active: true
-    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**']
     excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax', 'dagger']
     areDataClassesIgnored: true
   ConversionNameMismatch:

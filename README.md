@@ -184,12 +184,12 @@ class Parts(names: List<String>, cost: Cost) {
 
 Production code must not hardcode an HTTP or HTTPS URL outside the DI packages. Supply the URL through DI, a build property or a resource.
 
-The rule reports a string with `http://` or `https://`, in any case, in a file whose package has no allowed segment. A URL that starts with an allowed prefix, such as an XML namespace, a loopback redirect or a Google OAuth scope, passes in any package. The default config excludes the test sources and the Gradle scripts.
+The rule reports a string with `http://` or `https://`, in any case, in a file whose package has no allowed segment. A URL that starts with an allowed prefix, such as an XML namespace, passes in any package. Add the URLs that are fixed by a protocol, such as OAuth scopes or loopback redirects, to `allowedUrlPrefixes`. The default config excludes the test sources and the Gradle scripts.
 
 | Option | Default | Description |
 |---|---|---|
 | `allowedPackageSegments` | `['di']` | Names of the package segments where a URL can be hardcoded |
-| `allowedUrlPrefixes` | `['http://schemas.android.com/', 'http://www.w3.org/', 'http://127.0.0.1', 'http://[::1]', 'https://www.googleapis.com/auth/']` | Prefixes of the URLs that can be hardcoded in any package, such as XML namespaces and OAuth scopes |
+| `allowedUrlPrefixes` | `['http://schemas.android.com/', 'http://www.w3.org/']` | Prefixes of the URLs that can be hardcoded in any package, such as XML namespaces |
 
 Fails:
 
@@ -418,7 +418,7 @@ The nested types of a store must stay near the store. Intent, Action and Message
 
 The rule is for the MVIKotlin store layout, where a store declares its `Intent`, `Action`, `Message`, `State` and `Label` as nested types.
 
-A store is a type whose name ends with `storeSuffix`. The rule finds its nested types in imports and in qualified names, such as `CheckoutStore.Message` or `com.example.cart.checkout.CheckoutStore.Message`, and reports each of them once in a file. The rule does not resolve star imports: a store that is not imported by name counts as a store in the package of the file. The store package and its `allowedSubpackages` can use all the nested types. The component package is the store package or its parent. The UI is in the `uiPackage` subpackage of the component package. The default config excludes the `di` packages, because the bindings use all the types, and the test sources.
+A store is a type whose name ends with `storeSuffix`. The rule finds its nested types in imports and in qualified names, such as `CheckoutStore.Message` or `com.example.cart.checkout.CheckoutStore.Message`, and reports each of them once in a file. The rule does not resolve star imports: a store that is not imported by name counts as a store in the package of the file. The store package and its `allowedSubpackages` can use all the nested types. The component package is the store package or its parent. The UI is in the `uiPackage` subpackage of the component package. The default config excludes the test sources. Add `**/di/**` to `excludes` when the DI bindings use all the types.
 
 | Option | Default | Description |
 |---|---|---|

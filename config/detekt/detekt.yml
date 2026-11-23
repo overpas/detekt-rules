@@ -1,15 +1,15 @@
 overpas-architecture:
   HardcodedUrl:
     active: true
-    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**', '**/*.gradle.kts']
+    excludes: ['**/test/**', '**/*Test/**', '**/*.gradle.kts']
     allowedPackageSegments: ['di']
-    allowedUrlPrefixes: ['http://schemas.android.com/', 'http://www.w3.org/', 'http://127.0.0.1', 'http://[::1]', 'https://www.googleapis.com/auth/']
+    allowedUrlPrefixes: ['http://schemas.android.com/', 'http://www.w3.org/']
   NonInjectedDependency:
     active: true
     providerAnnotations: ['Provides', 'Binds']
   StoreTypeLeak:
     active: true
-    excludes: ['**/di/**', '**/test/**', '**/*Test/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**']
     storeSuffix: 'Store'
     storeTypes: ['Intent', 'Action', 'Message', 'State', 'Label']
     allowedSubpackages: []

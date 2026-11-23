@@ -134,7 +134,7 @@ class HardcodedUrlTest {
     }
 
     @Test
-    fun `a loopback redirect url passes`() {
+    fun `a loopback redirect url is reported by default`() {
         val code = """
             package com.example.auth
 
@@ -143,11 +143,11 @@ class HardcodedUrlTest {
 
         val findings = sut.lint(code)
 
-        assertEquals(0, findings.size)
+        assertEquals(1, findings.size)
     }
 
     @Test
-    fun `an oauth scope passes`() {
+    fun `an oauth scope is reported by default`() {
         val code = """
             package com.example.auth
 
@@ -156,6 +156,6 @@ class HardcodedUrlTest {
 
         val findings = sut.lint(code)
 
-        assertEquals(0, findings.size)
+        assertEquals(1, findings.size)
     }
 }

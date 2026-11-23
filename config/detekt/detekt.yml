@@ -1,7 +1,21 @@
 overpas-architecture:
+  HardcodedUrl:
+    active: true
+    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**', '**/*.gradle.kts']
+    allowedPackageSegments: ['di']
+    allowedUrlPrefixes: ['http://schemas.android.com/', 'http://www.w3.org/', 'http://127.0.0.1', 'http://[::1]', 'https://www.googleapis.com/auth/']
   NonInjectedDependency:
     active: true
     providerAnnotations: ['Provides', 'Binds']
+  StoreTypeLeak:
+    active: true
+    excludes: ['**/di/**', '**/test/**', '**/*Test/**', '**/ui-test/**']
+    storeSuffix: 'Store'
+    storeTypes: ['Intent', 'Action', 'Message', 'State', 'Label']
+    allowedSubpackages: []
+    componentTypes: ['Intent', 'State', 'Label']
+    uiPackage: 'ui'
+    uiTypes: ['State', 'Label']
 
 overpas-compose:
   AnimatedContentTargetIgnored:
@@ -64,7 +78,7 @@ overpas-coroutines:
     allowedFunctions: ['main']
   SharingInFunction:
     active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
     sharingCalls: ['stateIn', 'shareIn']
   StoredCoroutineScope:
     active: true
@@ -80,6 +94,10 @@ overpas-gradle:
     testLibraries: ['androidx.compose.ui.test', 'androidx.espresso', 'androidx.test', 'compose.ui.test', 'detekt.test', 'junit', 'kotlin.test', 'kotlinx.coroutines.test', 'robolectric']
 
 overpas-style:
+  ConversionNameMismatch:
+    active: true
+    ignoredSuffixes: ['OrNull', 'OrThrow', 'OrDefault', 'OrElse', 'OrEmpty']
+    ignoredReceiverTypes: ['String', 'Boolean', 'Byte', 'Short', 'Int', 'Long', 'Float', 'Double', 'Char']
   ExpressionBodyOnNewLine:
     active: true
   FileStructure:
@@ -102,7 +120,9 @@ overpas-style:
   RedundantFunctionName:
     active: true
     ignoredWords: ['And', 'At', 'By', 'For', 'From', 'In', 'Of', 'On', 'Or', 'To', 'With']
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
+  RepeatedLazyValue:
+    active: true
   SetupWithoutApply:
     active: true
     minUseCount: 2
@@ -184,7 +204,7 @@ complexity:
   LabeledExpression:
     active: true
   LargeClass:
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
   LongMethod:
     allowedLines: 100
     ignoreAnnotated: ['Test']
@@ -192,9 +212,9 @@ complexity:
     active: true
   StringLiteralDuplication:
     active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
   TooManyFunctions:
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
     allowedFunctionsPerFile: 15
     allowedFunctionsPerClass: 15
     allowedFunctionsPerInterface: 15
@@ -216,7 +236,7 @@ naming:
     active: true
   FunctionNameMaxLength:
     active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidDeviceTest/**', '**/androidHostTest/**', '**/iosTest/**', '**/uiTest/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
   FunctionNameMinLength:
     active: true
   FunctionNaming:

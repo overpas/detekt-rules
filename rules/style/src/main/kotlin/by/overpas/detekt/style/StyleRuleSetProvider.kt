@@ -12,12 +12,15 @@ class StyleRuleSetProvider : RuleSetProvider {
         RuleSet(
             ruleSetId,
             listOf(
+                ::CollaboratorNameMismatch,
+                ::ConversionNameMismatch,
                 ::ExpressionBodyOnNewLine,
                 ::FileStructure,
                 ::ForwardedParameter,
                 ::LinearContainsCheck,
                 ::MutableVariable,
                 ::RedundantFunctionName,
+                ::RepeatedLazyValue,
                 ::SetupWithoutApply,
                 ::SubjectlessWhenOnOneValue,
                 ::TypeCast,

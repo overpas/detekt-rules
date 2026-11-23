@@ -122,6 +122,95 @@ fun load(): Data {
 }
 ```
 
+#### `ConcreteCollaborator`
+
+A constructor must take a collaborator through its interface. A class that implements a project interface ties the constructor to one implementation. Needs type resolution, so the plain `detekt` task skips it.
+
+The rule reports a constructor parameter whose type is a class that implements a project interface, also through a superclass. A project interface is an interface in the sources under analysis, or an interface whose package starts with the same `rootPackageDepth` segments as the package of the checked file. Data classes, value classes, enums and objects as parameter types pass. The default config excludes the test sources.
+
+| Option | Default | Description |
+|---|---|---|
+| `rootPackageDepth` | `2` | Number of the first package segments that a project interface shares with the checked file |
+| `areDataClassesIgnored` | `true` | Ignore the constructors of data classes |
+
+Fails:
+
+```kotlin
+interface PaymentGateway
+class CardPaymentGateway : PaymentGateway
+class Checkout(private val gateway: CardPaymentGateway)
+```
+
+Passes:
+
+```kotlin
+interface PaymentGateway
+class Checkout(private val gateway: PaymentGateway)
+```
+
+#### `ConstructedCollaborator`
+
+A class must not build a collaborator from its constructor parameters in a property initializer or in an init block. Inject the collaborator instead. Needs type resolution, so the plain `detekt` task skips it.
+
+The rule reports a property initializer, a property delegate or an `init` block with a constructor call that takes a constructor parameter of the class, once for each property or block. A call that also takes a local value or a lambda parameter passes, because it builds one value for each item. Data classes, value classes and the classes of the excluded packages pass. The default config excludes the test sources.
+
+| Option | Default | Description |
+|---|---|---|
+| `excludedPackages` | `['kotlin', 'kotlinx', 'java', 'javax', 'android', 'androidx']` | Packages of the classes that a class can build from its constructor parameters, with subpackages |
+
+Fails:
+
+```kotlin
+class ReportScheduler(jobRunner: JobRunner) {
+    private val queue = RetryingJobQueue(jobRunner)
+}
+
+class ReportScheduler(jobRunner: JobRunner) {
+    private val queue by lazy { RetryingJobQueue(jobRunner) }
+}
+```
+
+Passes:
+
+```kotlin
+class ReportScheduler(private val queue: JobQueue)
+
+class Parts(names: List<String>, cost: Cost) {
+    private val parts = names.map { Part(it, cost) }
+}
+```
+
+#### `HardcodedUrl`
+
+Production code must not hardcode an HTTP or HTTPS URL outside the DI packages. Supply the URL through DI, a build property or a resource.
+
+The rule reports a string with `http://` or `https://`, in any case, in a file whose package has no allowed segment. A URL that starts with an allowed prefix, such as an XML namespace, a loopback redirect or a Google OAuth scope, passes in any package. The default config excludes the test sources and the Gradle scripts.
+
+| Option | Default | Description |
+|---|---|---|
+| `allowedPackageSegments` | `['di']` | Names of the package segments where a URL can be hardcoded |
+| `allowedUrlPrefixes` | `['http://schemas.android.com/', 'http://www.w3.org/', 'http://127.0.0.1', 'http://[::1]', 'https://www.googleapis.com/auth/']` | Prefixes of the URLs that can be hardcoded in any package, such as XML namespaces and OAuth scopes |
+
+Fails:
+
+```kotlin
+package com.example.shop
+
+class OrderApi(private val http: HttpTransport) {
+    suspend fun orders() = http.get("https://api.example.com/v1/orders")
+}
+```
+
+Passes:
+
+```kotlin
+package com.example.shop.di
+
+object ShopUrls {
+    const val ORDERS = "https://api.example.com/v1/orders"
+}
+```
+
 #### `HiddenAbstraction`
 
 A class, an interface, an object or a file must not have more helper functions than entry points. Many helper functions that call each other show a hidden abstraction. Put the helpers behind a new abstraction, or move them to the types that they use. Needs type resolution, so the plain `detekt` task skips it.
@@ -248,6 +337,47 @@ object Providers {
 }
 ```
 
+#### `ProvidesInsteadOfInject`
+
+A DI provider must not only pass its parameters to the constructor of a project class. Put `@Inject` on the class, and bind it to its interface with `@Binds`. Needs type resolution, so the plain `detekt` task skips it.
+
+The rule is for the DI frameworks that support the JSR-330 `@Inject` annotation and the Dagger-style `@Provides` and `@Binds` annotations, for example Dagger, Hilt, Metro and kotlin-inject.
+
+The rule reports a provider whose body is one constructor call, when each argument of the call is a parameter of the provider. When the provider returns a supertype of the class, the message proposes `@Binds`. A project class is a class in the sources under analysis, or a class whose package starts with the same `rootPackageDepth` segments as the package of the checked file. A provider of a library class passes, because the library class cannot get `@Inject`.
+
+| Option | Default | Description |
+|---|---|---|
+| `providerAnnotations` | `['Provides']` | Short names of the annotations that mark a DI provider |
+| `rootPackageDepth` | `2` | Number of the first package segments that a project class shares with the checked file |
+
+Fails:
+
+```kotlin
+@Module
+object OrderModule {
+    @Provides
+    fun orderRepository(api: OrderApi): OrderRepository = HttpOrderRepository(api)
+}
+```
+
+Passes:
+
+```kotlin
+class HttpOrderRepository @Inject constructor(private val api: OrderApi) : OrderRepository
+
+@Module
+interface OrderModule {
+    @Binds
+    fun orderRepository(repository: HttpOrderRepository): OrderRepository
+}
+
+@Module
+object ClientModule {
+    @Provides
+    fun client(engine: HttpClientEngine): HttpClient = HttpClient(engine)
+}
+```
+
 #### `RepeatedCollaboratorType`
 
 A constructor must not take more than one collaborator of the same type. A group of same-type collaborators tends to grow, so the class does not scale. Put the group behind one abstraction. Needs type resolution, so the plain `detekt` task skips it.
@@ -280,6 +410,55 @@ class Interactor(users: Users, orders: Orders)
 
 class Account
 data class Transfer(val from: Account, val to: Account)
+```
+
+#### `StoreTypeLeak`
+
+The nested types of a store must stay near the store. Intent, Action and Message stay in the package of the store and its allowed subpackages. The component can also use Intent, State and Label, and the UI can use State and Label. Inactive by default.
+
+The rule is for the MVIKotlin store layout, where a store declares its `Intent`, `Action`, `Message`, `State` and `Label` as nested types.
+
+A store is a type whose name ends with `storeSuffix`. The rule finds its nested types in imports and in qualified names, such as `CheckoutStore.Message` or `com.example.cart.checkout.CheckoutStore.Message`, and reports each of them once in a file. The rule does not resolve star imports: a store that is not imported by name counts as a store in the package of the file. The store package and its `allowedSubpackages` can use all the nested types. The component package is the store package or its parent. The UI is in the `uiPackage` subpackage of the component package. The default config excludes the `di` packages, because the bindings use all the types, and the test sources.
+
+| Option | Default | Description |
+|---|---|---|
+| `storeSuffix` | `'Store'` | Suffix of the names of the store types |
+| `storeTypes` | `['Intent', 'Action', 'Message', 'State', 'Label']` | Names of the nested types of a store that the rule checks |
+| `allowedSubpackages` | `[]` | Subpackages of the store package that can use all the nested types of the store |
+| `componentTypes` | `['Intent', 'State', 'Label']` | Nested types of a store that the component package can also use |
+| `uiPackage` | `'ui'` | Name of the subpackage of the component package that holds the UI |
+| `uiTypes` | `['State', 'Label']` | Nested types of a store that the UI package can also use |
+
+Fails:
+
+```kotlin
+package com.example.cart.totals
+
+import com.example.cart.checkout.CheckoutStore.Message
+
+class TotalsLoader(private val dispatch: (Message) -> Unit)
+
+package com.example.cart.ui
+
+import com.example.cart.checkout.CheckoutStore.Intent
+
+fun CartUi(onIntent: (Intent) -> Unit)
+```
+
+Passes:
+
+```kotlin
+package com.example.cart.checkout
+
+class CheckoutExecutor(private val dispatch: (CheckoutStore.Message) -> Unit)
+
+package com.example.cart
+
+import com.example.cart.checkout.CheckoutStore
+
+class CartComponent(private val store: CheckoutStore) {
+    fun onPayClick() = store.accept(CheckoutStore.Intent.OnPayClick)
+}
 ```
 
 #### `WeightedComplexity`
@@ -937,6 +1116,66 @@ dependencies {
 
 ### `overpas-style`
 
+#### `CollaboratorNameMismatch`
+
+The name of a constructor property must contain the last word of the name of its type. `gateway: PaymentGateway` tells what the property is, `payments: PaymentGateway` does not. Needs type resolution, so the plain `detekt` task skips it.
+
+The name does not have to end with the full type name, and the check ignores case. Constructor parameters without `val` or `var`, the delegates of a class delegation, such as `delegate` in `by delegate`, function types, type parameters and the types of the excluded packages pass. The default config excludes the test sources.
+
+| Option | Default | Description |
+|---|---|---|
+| `excludedPackages` | `['kotlin', 'kotlinx', 'java', 'javax', 'dagger']` | Packages of the types that a property can have under any name, with subpackages |
+| `areDataClassesIgnored` | `true` | Ignore the constructors of data classes |
+
+Fails:
+
+```kotlin
+class Checkout(private val payments: PaymentGateway)
+
+class Billing(private val invoices: InvoiceArchiveRepository)
+```
+
+Passes:
+
+```kotlin
+class Checkout(private val gateway: PaymentGateway)
+
+class Catalog(private val cachedPriceDb: PriceDb)
+```
+
+#### `ConversionNameMismatch`
+
+The return type of a `toX` or an `asX` function must contain `X` in its name. `toInvoice(): Receipt` promises an invoice but gives a receipt.
+
+The rule checks the explicit return type only. The check ignores case, and the qualifiers and type arguments count, so `toStoreState(): CartStore.State` and `toPage(): Result<Page>` pass. A plural name is checked like its singular, so `toInvoices(): List<Invoice>` and `toCategories(): List<Category>` pass. A return type that is a type parameter of the function passes. The conversions of the ignored receiver types, such as `String.toTitleCase(): String`, pass.
+
+| Option | Default | Description |
+|---|---|---|
+| `ignoredSuffixes` | `['OrNull', 'OrThrow', 'OrDefault', 'OrElse', 'OrEmpty']` | Suffixes of a conversion name that the return type does not have to contain |
+| `ignoredReceiverTypes` | `['String', 'Boolean', 'Byte', 'Short', 'Int', 'Long', 'Float', 'Double', 'Char']` | Short names of the receiver types whose conversions the rule does not check |
+
+Fails:
+
+```kotlin
+fun Order.toInvoice(): Receipt?
+
+fun Voucher.asDiscount(): Coupon
+
+fun Order.toInvoices(): List<Receipt>
+```
+
+Passes:
+
+```kotlin
+fun Order.toReceipt(): Receipt?
+
+fun Order.toReceipts(): List<Receipt>
+
+fun Price.toIntOrNull(): Int?
+
+fun String.toTitleCase(): String
+```
+
 #### `ExpressionBodyOnNewLine`
 
 An expression body on the signature line is hard to scan. Put a newline after `=`.
@@ -1140,6 +1379,33 @@ Passes:
 interface UserRepository {
     fun get(id: String): User
     fun getAll(): List<User>
+}
+```
+
+#### `RepeatedLazyValue`
+
+The `value` of a `Lazy` must be read only once. Delegate a property to the `Lazy` with `by`, or keep the value in one private property.
+
+The rule checks parameters and properties of the `Lazy` type. It counts `x.value` and `this.x.value` in the class of a constructor parameter or a member property, in the function of a function parameter and in the block of a local value. A nested class, function or block that declares the same name hides the value, so its reads do not count.
+
+No options.
+
+Fails:
+
+```kotlin
+class ThemeRepository(private val preferences: Lazy<Preferences>) {
+    fun accent() = preferences.value.getString("accent")
+    fun fontScale() = preferences.value.getFloat("font_scale")
+}
+```
+
+Passes:
+
+```kotlin
+class ThemeRepository(lazyPreferences: Lazy<Preferences>) {
+    private val preferences by lazyPreferences
+    fun accent() = preferences.getString("accent")
+    fun fontScale() = preferences.getFloat("font_scale")
 }
 ```
 

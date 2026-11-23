@@ -1,12 +1,12 @@
 overpas-style:
   active: true
   CollaboratorNameMismatch:
-    active: true
-    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
+    active: false
+    excludes: ['**/test/**', '**/*Test/**']
     excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax', 'dagger']
     areDataClassesIgnored: true
   ConversionNameMismatch:
-    active: true
+    active: false
     ignoredSuffixes: ['OrNull', 'OrThrow', 'OrDefault', 'OrElse', 'OrEmpty']
     ignoredReceiverTypes: ['String', 'Boolean', 'Byte', 'Short', 'Int', 'Long', 'Float', 'Double', 'Char']
   ExpressionBodyOnNewLine:

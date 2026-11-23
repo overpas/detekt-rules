@@ -54,7 +54,7 @@ exceptions:
     active: true
   InstanceOfCheckForException:
     active: true
-    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**']
   ObjectExtendsThrowable:
     active: true
   ReturnFromFinally:
@@ -66,12 +66,12 @@ overpas-architecture:
     active: true
   ConcreteCollaborator:
     active: true
-    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**']
     rootPackageDepth: 2
     areDataClassesIgnored: true
   ConstructedCollaborator:
     active: true
-    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**']
     excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax', 'android', 'androidx']
   HiddenAbstraction:
     active: true
@@ -109,7 +109,7 @@ overpas-coroutines:
 overpas-style:
   CollaboratorNameMismatch:
     active: true
-    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**']
     excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax', 'dagger', 'org.jetbrains.kotlin', 'com.intellij']
     areDataClassesIgnored: true
 
@@ -134,7 +134,7 @@ performance:
     allowedOperations: 2
   SpreadOperator:
     active: true
-    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**']
 
 potential-bugs:
   AvoidReferentialEquality:
@@ -233,7 +233,7 @@ potential-bugs:
     active: true
   UnsafeCallOnNullableType:
     active: true
-    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**']
   UnsafeCast:
     active: true
     aliases: ['UNCHECKED_CAST']

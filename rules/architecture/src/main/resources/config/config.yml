@@ -4,18 +4,18 @@ overpas-architecture:
     active: false
   ConcreteCollaborator:
     active: true
-    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**']
     rootPackageDepth: 2
     areDataClassesIgnored: true
   ConstructedCollaborator:
-    active: true
-    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
+    active: false
+    excludes: ['**/test/**', '**/*Test/**']
     excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax', 'android', 'androidx']
   HardcodedUrl:
-    active: true
-    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**', '**/*.gradle.kts']
+    active: false
+    excludes: ['**/test/**', '**/*Test/**', '**/*.gradle.kts']
     allowedPackageSegments: ['di']
-    allowedUrlPrefixes: ['http://schemas.android.com/', 'http://www.w3.org/', 'http://127.0.0.1', 'http://[::1]', 'https://www.googleapis.com/auth/']
+    allowedUrlPrefixes: ['http://schemas.android.com/', 'http://www.w3.org/']
   HiddenAbstraction:
     active: true
   LowCohesion:
@@ -38,7 +38,7 @@ overpas-architecture:
     areDataClassesIgnored: true
   StoreTypeLeak:
     active: false
-    excludes: ['**/di/**', '**/test/**', '**/*Test/**', '**/ui-test/**']
+    excludes: ['**/test/**', '**/*Test/**']
     storeSuffix: 'Store'
     storeTypes: ['Intent', 'Action', 'Message', 'State', 'Label']
     allowedSubpackages: []

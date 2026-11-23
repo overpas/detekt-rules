@@ -156,7 +156,7 @@ The rule reports a property initializer, a property delegate or an `init` block 
 
 | Option | Default | Description |
 |---|---|---|
-| `excludedPackages` | `['kotlin', 'kotlinx', 'java', 'javax']` | Packages of the classes that a class can build from its constructor parameters, with subpackages |
+| `excludedPackages` | `['kotlin', 'kotlinx', 'java', 'javax', 'android', 'androidx']` | Packages of the classes that a class can build from its constructor parameters, with subpackages |
 
 Fails:
 
@@ -184,11 +184,12 @@ class Parts(names: List<String>, cost: Cost) {
 
 Production code must not hardcode an HTTP or HTTPS URL outside the DI packages. Supply the URL through DI, a build property or a resource.
 
-The rule reports a string with `http://` or `https://` in a file whose package has no allowed segment. The default config excludes the test sources and the Gradle scripts.
+The rule reports a string with `http://` or `https://`, in any case, in a file whose package has no allowed segment. A URL that starts with an allowed prefix, such as an XML namespace, passes in any package. The default config excludes the test sources and the Gradle scripts.
 
 | Option | Default | Description |
 |---|---|---|
-| `allowedPackages` | `['di']` | Names of the package segments where a URL can be hardcoded |
+| `allowedPackageSegments` | `['di']` | Names of the package segments where a URL can be hardcoded |
+| `allowedUrlPrefixes` | `['http://schemas.android.com/', 'http://www.w3.org/']` | Prefixes of the URLs that can be hardcoded in any package, such as XML namespaces |
 
 Fails:
 
@@ -342,7 +343,7 @@ A DI provider must not only pass its parameters to the constructor of a project 
 
 The rule is for the DI frameworks that support the JSR-330 `@Inject` annotation and the Dagger-style `@Provides` and `@Binds` annotations, for example Dagger, Hilt, Metro and kotlin-inject.
 
-The rule reports a provider whose body is one constructor call, when each argument of the call is a parameter of the provider. When the provider returns an interface, the message proposes `@Binds`. A project class is a class in the sources under analysis, or a class whose package starts with the same `rootPackageDepth` segments as the package of the checked file. A provider of a library class passes, because the library class cannot get `@Inject`.
+The rule reports a provider whose body is one constructor call, when each argument of the call is a parameter of the provider. When the provider returns a supertype of the class, the message proposes `@Binds`. A project class is a class in the sources under analysis, or a class whose package starts with the same `rootPackageDepth` segments as the package of the checked file. A provider of a library class passes, because the library class cannot get `@Inject`.
 
 | Option | Default | Description |
 |---|---|---|
@@ -413,9 +414,11 @@ data class Transfer(val from: Account, val to: Account)
 
 #### `StoreTypeLeak`
 
-The nested types of a store must stay near the store. Intent, Action and Message stay in the package of the store and its allowed subpackages. The component can also use Intent, State and Label, and the UI can use State and Label.
+The nested types of a store must stay near the store. Intent, Action and Message stay in the package of the store and its allowed subpackages. The component can also use Intent, State and Label, and the UI can use State and Label. Inactive by default.
 
-A store is a type whose name ends with `storeSuffix`. The rule finds its nested types in imports and in qualified names, such as `CheckoutStore.Message`, and reports each of them once in a file. The store package and its `allowedSubpackages` can use all the nested types. The component package is the store package or its parent. The UI is in the `uiPackage` subpackage of the component package. The default config excludes the `di` packages, because the bindings use all the types.
+The rule is for the MVIKotlin store layout, where a store declares its `Intent`, `Action`, `Message`, `State` and `Label` as nested types.
+
+A store is a type whose name ends with `storeSuffix`. The rule finds its nested types in imports and in qualified names, such as `CheckoutStore.Message` or `com.example.cart.checkout.CheckoutStore.Message`, and reports each of them once in a file. The rule does not resolve star imports: a store that is not imported by name counts as a store in the package of the file. The store package and its `allowedSubpackages` can use all the nested types. The component package is the store package or its parent. The UI is in the `uiPackage` subpackage of the component package. The default config excludes the `di` packages, because the bindings use all the types.
 
 | Option | Default | Description |
 |---|---|---|
@@ -1121,7 +1124,7 @@ The name does not have to end with the full type name, and the check ignores cas
 
 | Option | Default | Description |
 |---|---|---|
-| `excludedPackages` | `['kotlin', 'kotlinx', 'java', 'javax']` | Packages of the types that a property can have under any name, with subpackages |
+| `excludedPackages` | `['kotlin', 'kotlinx', 'java', 'javax', 'dagger']` | Packages of the types that a property can have under any name, with subpackages |
 | `areDataClassesIgnored` | `true` | Ignore the constructors of data classes |
 
 Fails:
@@ -1144,18 +1147,21 @@ class Catalog(private val cachedPriceDb: PriceDb)
 
 The return type of a `toX` or an `asX` function must contain `X` in its name. `toInvoice(): Receipt` promises an invoice but gives a receipt.
 
-The rule checks the explicit return type only. The check ignores case, and the qualifiers and type arguments count, so `toStoreState(): CartStore.State` and `toPage(): Result<Page>` pass. A return type that is a type parameter of the function passes.
+The rule checks the explicit return type only. The check ignores case, and the qualifiers and type arguments count, so `toStoreState(): CartStore.State` and `toPage(): Result<Page>` pass. A plural name is checked like its singular, so `toInvoices(): List<Invoice>` and `toCategories(): List<Category>` pass. A return type that is a type parameter of the function passes. The conversions of the ignored receiver types, such as `String.toTitleCase(): String`, pass.
 
 | Option | Default | Description |
 |---|---|---|
 | `ignoredSuffixes` | `['OrNull', 'OrThrow', 'OrDefault', 'OrElse', 'OrEmpty']` | Suffixes of a conversion name that the return type does not have to contain |
+| `ignoredReceiverTypes` | `['String', 'Boolean', 'Byte', 'Short', 'Int', 'Long', 'Float', 'Double', 'Char']` | Short names of the receiver types whose conversions the rule does not check |
 
 Fails:
 
 ```kotlin
 fun Order.toInvoice(): Receipt?
 
-fun String.asDiscount(): Coupon
+fun Voucher.asDiscount(): Coupon
+
+fun Order.toInvoices(): List<Receipt>
 ```
 
 Passes:
@@ -1163,7 +1169,11 @@ Passes:
 ```kotlin
 fun Order.toReceipt(): Receipt?
 
-fun String.toIntOrNull(): Int?
+fun Order.toReceipts(): List<Receipt>
+
+fun Price.toIntOrNull(): Int?
+
+fun String.toTitleCase(): String
 ```
 
 #### `ExpressionBodyOnNewLine`
@@ -1376,7 +1386,7 @@ interface UserRepository {
 
 The `value` of a `Lazy` must be read only once. Delegate a property to the `Lazy` with `by`, or keep the value in one private property.
 
-The rule checks parameters and properties of the `Lazy` type. It counts `x.value` and `this.x.value` in the class of a constructor parameter or a member property, in the function of a function parameter and in the block of a local value.
+The rule checks parameters and properties of the `Lazy` type. It counts `x.value` and `this.x.value` in the class of a constructor parameter or a member property, in the function of a function parameter and in the block of a local value. A nested class, function or block that declares the same name hides the value, so its reads do not count.
 
 No options.
 

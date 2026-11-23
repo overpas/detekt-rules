@@ -25,7 +25,9 @@ class CollaboratorNameMismatch(config: Config) :
     RequiresAnalysisApi {
 
     @Configuration("packages of the types that a property can have under any name, with subpackages")
-    private val excludedPackages: List<FqName> by config(listOf("kotlin", "kotlinx", "java", "javax")) { names ->
+    private val excludedPackages: List<FqName> by config(
+        listOf("kotlin", "kotlinx", "java", "javax", "dagger"),
+    ) { names ->
         names.map(::FqName)
     }
 
@@ -47,11 +49,12 @@ class CollaboratorNameMismatch(config: Config) :
                     val type = parameter.typeReference?.type as? KaClassType
                     type?.classId
                         ?.takeUnless { classId -> excludedPackages.any(classId.packageFqName::isSubpackageOf) }
-                        ?.run { parameter to shortClassName.asString() }
+                        ?.run { shortClassName.asString() }
+                }?.let { typeName ->
+                    WORD_PATTERN.findAll(typeName).lastOrNull()?.let { Triple(parameter, typeName, it.value) }
                 }
             }
-            .forEach { (parameter, typeName) ->
-                val lastWord = WORD_PATTERN.findAll(typeName).last().value
+            .forEach { (parameter, typeName, lastWord) ->
                 val name = parameter.nameAsSafeName.asString()
                 if (!name.contains(lastWord, ignoreCase = true)) {
                     report(
@@ -66,6 +69,6 @@ class CollaboratorNameMismatch(config: Config) :
     }
 
     private companion object {
-        val WORD_PATTERN = Regex("[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+")
+        val WORD_PATTERN = Regex("""\p{Lu}+(?!\p{Ll})|\p{Lu}?[\p{Ll}\d]+""")
     }
 }

@@ -6,7 +6,10 @@ import dev.detekt.api.Config
 import dev.detekt.api.Entity
 import dev.detekt.api.Finding
 import dev.detekt.api.Rule
+import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
@@ -42,7 +45,9 @@ class RepeatedLazyValue(config: Config) :
     ) {
         val name = declaration.name
         if (scope == null || name == null || declaration.typeReference?.shortTypeName() != "Lazy") return
-        val reads = scope.collectDescendantsOfType<KtQualifiedExpression> { expression ->
+        val reads = scope.collectDescendantsOfType<KtQualifiedExpression>(
+            canGoInside = { it == scope || !it.declares(name) },
+        ) { expression ->
             val receiver = expression.receiverExpression
             val target = (receiver as? KtQualifiedExpression)
                 ?.takeIf { it.receiverExpression is KtThisExpression }
@@ -60,4 +65,16 @@ class RepeatedLazyValue(config: Config) :
             )
         }
     }
+
+    private fun PsiElement.declares(name: String): Boolean =
+        when (this) {
+            is KtClassOrObject -> primaryConstructorParameters.any { it.name == name } ||
+                declarations.any { it is KtProperty && it.name == name }
+
+            is KtFunction -> valueParameters.any { it.name == name }
+
+            is KtBlockExpression -> statements.any { it is KtProperty && it.name == name }
+
+            else -> false
+        }
 }

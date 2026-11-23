@@ -28,7 +28,8 @@ class ConversionNameMismatchTest {
     fun `an as function that returns another type is reported`() {
         val code = """
             class Coupon
-            fun String.asDiscount(): Coupon = Coupon()
+            class Code
+            fun Code.asDiscount(): Coupon = Coupon()
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -40,7 +41,8 @@ class ConversionNameMismatchTest {
     fun `a to function that returns its type passes`() {
         val code = """
             class DiscountPriceLabel
-            fun Int.toPriceLabel(): DiscountPriceLabel = DiscountPriceLabel()
+            class Amount
+            fun Amount.toPriceLabel(): DiscountPriceLabel = DiscountPriceLabel()
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -54,7 +56,8 @@ class ConversionNameMismatchTest {
             object CartStore {
                 class State
             }
-            fun Int.toStoreState(): CartStore.State = CartStore.State()
+            class Amount
+            fun Amount.toStoreState(): CartStore.State = CartStore.State()
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -66,7 +69,8 @@ class ConversionNameMismatchTest {
     fun `a type argument with the converted name passes`() {
         val code = """
             class Page
-            fun String.toPage(): Result<Page> = Result.success(Page())
+            class Code
+            fun Code.toPage(): Result<Page> = Result.success(Page())
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -77,7 +81,8 @@ class ConversionNameMismatchTest {
     @Test
     fun `a type argument without the converted name is reported`() {
         val code = """
-            fun String.toToken(): Result<String> = Result.success(this)
+            class Code
+            fun Code.toToken(): Result<String> = Result.success(this)
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -88,7 +93,8 @@ class ConversionNameMismatchTest {
     @Test
     fun `an or null conversion passes`() {
         val code = """
-            fun String.toIntOrNull(): Int? = null
+            class Code
+            fun Code.toIntOrNull(): Int? = null
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -111,7 +117,8 @@ class ConversionNameMismatchTest {
     fun `a function without an explicit return type passes`() {
         val code = """
             class Receipt
-            fun Int.toInvoice() = Receipt()
+            class Amount
+            fun Amount.toInvoice() = Receipt()
         """.trimIndent()
 
         val findings = sut.lint(code)
@@ -135,7 +142,94 @@ class ConversionNameMismatchTest {
     fun `custom ignored suffixes are honored`() {
         val sut = ConversionNameMismatch(TestConfig("ignoredSuffixes" to emptyList<String>()))
         val code = """
-            fun String.toIntOrNull(): Int? = null
+            class Code
+            fun Code.toIntOrNull(): Int? = null
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
+    fun `a conversion of a string passes`() {
+        val code = """
+            fun String.toTitleCase(): String = this
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `a conversion of a nullable primitive passes`() {
+        val code = """
+            fun Long?.toMillis(): Long = this ?: 0
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `custom ignored receiver types are honored`() {
+        val sut = ConversionNameMismatch(TestConfig("ignoredReceiverTypes" to emptyList<String>()))
+        val code = """
+            fun String.toTitleCase(): String = this
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
+    fun `a plural conversion to its singular type passes`() {
+        val code = """
+            class Invoice
+            class Order
+            fun Order.toInvoices(): List<Invoice> = emptyList()
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `a plural conversion with an ies ending passes`() {
+        val code = """
+            class Category
+            class Catalog
+            fun Catalog.toCategories(): List<Category> = emptyList()
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `a plural conversion with an es ending passes`() {
+        val code = """
+            class Box
+            class Order
+            fun Order.toBoxes(): List<Box> = emptyList()
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `a plural conversion to another type is reported`() {
+        val code = """
+            class Receipt
+            class Order
+            fun Order.toInvoices(): List<Receipt> = emptyList()
         """.trimIndent()
 
         val findings = sut.lint(code)

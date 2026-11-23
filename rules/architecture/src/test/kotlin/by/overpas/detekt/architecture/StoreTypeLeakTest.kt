@@ -193,4 +193,41 @@ class StoreTypeLeakTest {
 
         assertEquals(1, findings.size)
     }
+
+    @Test
+    fun `a fully qualified message type outside the store package is reported`() {
+        val code = """
+            package com.example.cart.totals
+
+            class TotalsLoader(private val dispatch: (com.example.cart.checkout.CheckoutStore.Message) -> Unit)
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
+    fun `a fully qualified message expression outside the store package is reported`() {
+        val code = """
+            package com.example.cart.totals
+
+            val loaded = com.example.cart.checkout.CheckoutStore.Message.Loaded
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
+    fun `a store type in a file without a package passes`() {
+        val code = """
+            class CartScreen(private val state: CheckoutStore.State)
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
 }

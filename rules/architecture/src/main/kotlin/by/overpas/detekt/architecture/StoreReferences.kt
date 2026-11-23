@@ -1,14 +1,11 @@
 package by.overpas.detekt.architecture
 
-import by.overpas.detekt.core.calleeName
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtImportList
-import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtPackageDirective
 import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
@@ -32,22 +29,15 @@ internal class StoreReferences(
                 predicate = { it is KtUserType || it is KtDotQualifiedExpression },
             )
             .mapNotNull { element ->
-                val (qualifier, name) = when (element) {
-                    is KtUserType -> element.qualifier?.takeIf { it.qualifier == null }?.referencedName to
-                        element.referencedName
-
-                    is KtDotQualifiedExpression -> element.selectorExpression.let { selector ->
-                        (element.receiverExpression as? KtNameReferenceExpression)?.getReferencedName() to
-                            (
-                                (selector as? KtNameReferenceExpression)?.getReferencedName()
-                                    ?: (selector as? KtCallExpression)?.calleeName()
-                                )
-                    }
-
-                    else -> null to null
+                val segments = when (element) {
+                    is KtUserType -> element.nameSegments()
+                    is KtDotQualifiedExpression -> element.nameSegments().orEmpty()
+                    else -> emptyList()
                 }
-                if (qualifier?.endsWith(suffix) == true && name != null && name in types) {
-                    StoreReference(element, storeNamed(qualifier), name)
+                val store = segments.dropLast(1)
+                val name = segments.lastOrNull()
+                if (store.lastOrNull()?.endsWith(suffix) == true && name != null && name in types) {
+                    StoreReference(element, store.singleOrNull()?.let(::storeNamed) ?: FqName.fromSegments(store), name)
                 } else {
                     null
                 }

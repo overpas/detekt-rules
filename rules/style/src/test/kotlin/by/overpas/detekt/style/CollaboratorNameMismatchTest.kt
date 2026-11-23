@@ -137,4 +137,37 @@ class CollaboratorNameMismatchTest {
 
         assertEquals(1, findings.size)
     }
+
+    @Test
+    fun `a name without the last word of a non-ascii type is reported`() {
+        val code = """
+            class Ä
+            class Mood(private val mood: Ä)
+        """.trimIndent()
+
+        val findings = sut.lintWithContext(environment, code)
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
+    fun `a dagger lazy under any name passes`() {
+        val dagger = """
+            package dagger
+
+            interface Lazy<T> {
+                fun get(): T
+            }
+        """.trimIndent()
+        val code = """
+            import dagger.Lazy
+
+            interface PaymentGateway
+            class Checkout(private val gateway: Lazy<PaymentGateway>)
+        """.trimIndent()
+
+        val findings = sut.lintWithContext(environment, code, dagger)
+
+        assertEquals(0, findings.size)
+    }
 }

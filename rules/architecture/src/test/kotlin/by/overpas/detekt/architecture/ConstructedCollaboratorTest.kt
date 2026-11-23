@@ -184,6 +184,28 @@ class ConstructedCollaboratorTest {
     }
 
     @Test
+    fun `an android class built from a constructor parameter passes`() {
+        val android = """
+            package android.os
+
+            class Looper
+            class Handler(looper: Looper)
+        """.trimIndent()
+        val code = """
+            import android.os.Handler
+            import android.os.Looper
+
+            class Ticker(looper: Looper) {
+                private val handler = Handler(looper)
+            }
+        """.trimIndent()
+
+        val findings = sut.lintWithContext(environment, code, android)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
     fun `a class from a package that is not excluded is reported`() {
         val sut = ConstructedCollaborator(TestConfig("excludedPackages" to emptyList<String>()))
         val code = """

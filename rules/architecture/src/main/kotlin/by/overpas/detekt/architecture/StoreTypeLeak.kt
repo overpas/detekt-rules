@@ -64,7 +64,7 @@ class StoreTypeLeak(config: Config) :
 
     private fun StoreReference.isAllowedIn(filePackage: FqName): Boolean {
         val storePackage = store.parent()
-        val componentPackages = setOf(storePackage, storePackage.parent())
+        val componentPackages = setOfNotNull(storePackage, storePackage.takeUnless { it.isRoot }?.parent())
         val isInStore = filePackage == storePackage ||
             allowedSubpackages.any { filePackage.isSubpackageOf(storePackage.child(Name.identifier(it))) }
         val isInComponent = type in componentTypes && filePackage in componentPackages

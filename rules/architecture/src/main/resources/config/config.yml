@@ -10,11 +10,12 @@ overpas-architecture:
   ConstructedCollaborator:
     active: true
     excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
-    excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax']
+    excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax', 'android', 'androidx']
   HardcodedUrl:
     active: true
     excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**', '**/*.gradle.kts']
-    allowedPackages: ['di']
+    allowedPackageSegments: ['di']
+    allowedUrlPrefixes: ['http://schemas.android.com/', 'http://www.w3.org/']
   HiddenAbstraction:
     active: true
   LowCohesion:
@@ -36,7 +37,7 @@ overpas-architecture:
     ignoredSupertypes: ['kotlin.Any', 'kotlin.Comparable', 'java.io.Serializable']
     areDataClassesIgnored: true
   StoreTypeLeak:
-    active: true
+    active: false
     excludes: ['**/di/**']
     storeSuffix: 'Store'
     storeTypes: ['Intent', 'Action', 'Message', 'State', 'Label']

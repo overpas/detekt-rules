@@ -17,15 +17,24 @@ class HardcodedUrl(config: Config) :
     ) {
 
     @Configuration("names of the package segments where a URL can be hardcoded")
-    private val allowedPackages: Set<String> by config(listOf("di")) { it.toSet() }
+    private val allowedPackageSegments: Set<String> by config(listOf("di")) { it.toSet() }
+
+    @Configuration("prefixes of the URLs that can be hardcoded in any package, such as XML namespaces")
+    private val allowedUrlPrefixes: List<String> by config(
+        listOf("http://schemas.android.com/", "http://www.w3.org/"),
+    )
 
     override fun visitStringTemplateExpression(expression: KtStringTemplateExpression) {
         super.visitStringTemplateExpression(expression)
         val segments = expression.containingKtFile.packageFqName.pathSegments().map { it.asString() }
         val hasUrl = expression.entries
             .filterIsInstance<KtLiteralStringTemplateEntry>()
-            .any { URL.containsMatchIn(it.text) }
-        if (hasUrl && segments.none { it in allowedPackages }) {
+            .any { entry ->
+                URL.findAll(entry.text).any { url ->
+                    allowedUrlPrefixes.none { entry.text.startsWith(it, url.range.first, ignoreCase = true) }
+                }
+            }
+        if (hasUrl && segments.none { it in allowedPackageSegments }) {
             report(
                 Finding(
                     Entity.from(expression),
@@ -36,6 +45,6 @@ class HardcodedUrl(config: Config) :
     }
 
     private companion object {
-        val URL = Regex("https?://")
+        val URL = Regex("https?://", RegexOption.IGNORE_CASE)
     }
 }

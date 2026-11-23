@@ -123,4 +123,34 @@ class RepeatedLazyValueTest {
 
         assertEquals(0, findings.size)
     }
+
+    @Test
+    fun `reads of a shadowing class property are not counted for a top level value`() {
+        val code = """
+            val preferences: Lazy<String> = lazy { "" }
+            val accent = preferences.value
+
+            class ThemeRepository(private val preferences: Lazy<String>) {
+                fun fontScale() = preferences.value
+            }
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `reads of a shadowing lambda parameter are not counted`() {
+        val code = """
+            fun render(preferences: Lazy<String>, other: Lazy<String>) {
+                println(preferences.value)
+                listOf(other).forEach { preferences: Lazy<String> -> println(preferences.value) }
+            }
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
 }

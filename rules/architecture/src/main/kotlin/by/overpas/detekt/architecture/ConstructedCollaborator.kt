@@ -36,7 +36,9 @@ class ConstructedCollaborator(config: Config) :
     RequiresAnalysisApi {
 
     @Configuration("packages of the classes that a class can build from its constructor parameters, with subpackages")
-    private val excludedPackages: List<FqName> by config(listOf("kotlin", "kotlinx", "java", "javax")) { names ->
+    private val excludedPackages: List<FqName> by config(
+        listOf("kotlin", "kotlinx", "java", "javax", "android", "androidx"),
+    ) { names ->
         names.map(::FqName)
     }
 

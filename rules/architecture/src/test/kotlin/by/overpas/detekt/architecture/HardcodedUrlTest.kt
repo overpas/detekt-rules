@@ -67,12 +67,65 @@ class HardcodedUrlTest {
     }
 
     @Test
-    fun `custom allowed packages are honored`() {
-        val sut = HardcodedUrl(TestConfig("allowedPackages" to listOf("config")))
+    fun `custom allowed package segments are honored`() {
+        val sut = HardcodedUrl(TestConfig("allowedPackageSegments" to listOf("config")))
         val code = """
             package com.example.config
 
             val orders = "https://api.example.com/v1/orders"
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `an upper case url is reported`() {
+        val code = """
+            package com.example.shop
+
+            val orders = "HTTPS://api.example.com/v1/orders"
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
+    fun `an xml namespace passes`() {
+        val code = """
+            package com.example.shop
+
+            val android = "http://schemas.android.com/apk/res/android"
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `a url after an xml namespace in one string is reported`() {
+        val code = """
+            package com.example.shop
+
+            val text = "http://www.w3.org/2000/svg https://api.example.com"
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
+    fun `custom allowed url prefixes are honored`() {
+        val sut = HardcodedUrl(TestConfig("allowedUrlPrefixes" to listOf("https://example.com/")))
+        val code = """
+            package com.example.shop
+
+            val help = "https://example.com/help"
         """.trimIndent()
 
         val findings = sut.lint(code)

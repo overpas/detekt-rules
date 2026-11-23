@@ -170,4 +170,49 @@ class CollaboratorNameMismatchTest {
 
         assertEquals(0, findings.size)
     }
+
+    @Test
+    fun `a delegate of a class delegation under any name passes`() {
+        val code = """
+            interface ExecutorScope
+            class SafeExecutorScope(private val delegate: ExecutorScope) : ExecutorScope by delegate
+        """.trimIndent()
+
+        val findings = sut.lintWithContext(environment, code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `a property next to a class delegation is still reported`() {
+        val code = """
+            interface ExecutorScope
+            interface PaymentGateway
+            class SafeExecutorScope(
+                private val delegate: ExecutorScope,
+                private val payments: PaymentGateway,
+            ) : ExecutorScope by delegate
+        """.trimIndent()
+
+        val findings = sut.lintWithContext(environment, code)
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
+    fun `a generic delegate of a class delegation passes`() {
+        val code = """
+            interface ExecutorScope<State : Any>
+            interface SafeScope<State : Any>
+            class SafeExecutorScope<State : Any>(
+                private val dispatcher: Any,
+                private val delegate: ExecutorScope<State>,
+            ) : SafeScope<State>,
+                ExecutorScope<State> by delegate
+        """.trimIndent()
+
+        val findings = sut.lintWithContext(environment, code)
+
+        assertEquals(0, findings.size)
+    }
 }

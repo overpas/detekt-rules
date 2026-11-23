@@ -109,6 +109,7 @@ overpas-coroutines:
 overpas-style:
   CollaboratorNameMismatch:
     active: true
+    excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**']
     excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax', 'dagger', 'org.jetbrains.kotlin', 'com.intellij']
     areDataClassesIgnored: true
 

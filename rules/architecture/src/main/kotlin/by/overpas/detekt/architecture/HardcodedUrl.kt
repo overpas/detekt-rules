@@ -19,9 +19,15 @@ class HardcodedUrl(config: Config) :
     @Configuration("names of the package segments where a URL can be hardcoded")
     private val allowedPackageSegments: Set<String> by config(listOf("di")) { it.toSet() }
 
-    @Configuration("prefixes of the URLs that can be hardcoded in any package, such as XML namespaces")
+    @Configuration("prefixes of the URLs that can be hardcoded in any package, such as XML namespaces and OAuth scopes")
     private val allowedUrlPrefixes: List<String> by config(
-        listOf("http://schemas.android.com/", "http://www.w3.org/"),
+        listOf(
+            "http://schemas.android.com/",
+            "http://www.w3.org/",
+            "http://127.0.0.1",
+            "http://[::1]",
+            "https://www.googleapis.com/auth/",
+        ),
     )
 
     override fun visitStringTemplateExpression(expression: KtStringTemplateExpression) {

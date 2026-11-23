@@ -132,4 +132,30 @@ class HardcodedUrlTest {
 
         assertEquals(0, findings.size)
     }
+
+    @Test
+    fun `a loopback redirect url passes`() {
+        val code = """
+            package com.example.auth
+
+            fun redirectUri(port: Int) = "http://127.0.0.1:${'$'}port"
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
+    fun `an oauth scope passes`() {
+        val code = """
+            package com.example.auth
+
+            const val SCOPES = "https://www.googleapis.com/auth/drive.appdata openid email"
+        """.trimIndent()
+
+        val findings = sut.lint(code)
+
+        assertEquals(0, findings.size)
+    }
 }

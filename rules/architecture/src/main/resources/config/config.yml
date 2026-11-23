@@ -15,7 +15,7 @@ overpas-architecture:
     active: true
     excludes: ['**/test/**', '**/*Test/**', '**/ui-test/**', '**/*.gradle.kts']
     allowedPackageSegments: ['di']
-    allowedUrlPrefixes: ['http://schemas.android.com/', 'http://www.w3.org/']
+    allowedUrlPrefixes: ['http://schemas.android.com/', 'http://www.w3.org/', 'http://127.0.0.1', 'http://[::1]', 'https://www.googleapis.com/auth/']
   HiddenAbstraction:
     active: true
   LowCohesion:
@@ -38,7 +38,7 @@ overpas-architecture:
     areDataClassesIgnored: true
   StoreTypeLeak:
     active: false
-    excludes: ['**/di/**']
+    excludes: ['**/di/**', '**/test/**', '**/*Test/**', '**/ui-test/**']
     storeSuffix: 'Store'
     storeTypes: ['Intent', 'Action', 'Message', 'State', 'Label']
     allowedSubpackages: []

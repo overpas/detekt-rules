@@ -12,7 +12,9 @@ import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.isSubpackageOf
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtDelegatedSuperTypeEntry
 import org.jetbrains.kotlin.psi.KtFunctionType
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNullableType
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 
@@ -38,11 +40,18 @@ class CollaboratorNameMismatch(config: Config) :
         super.visitPrimaryConstructor(constructor)
         val owner = constructor.getContainingClassOrObject()
         if (areDataClassesIgnored && owner is KtClass && owner.isData()) return
+        val delegates = owner.superTypeListEntries
+            .filterIsInstance<KtDelegatedSuperTypeEntry>()
+            .mapNotNull { (it.delegateExpression as? KtNameReferenceExpression)?.getReferencedName() }
+            .toSet()
         constructor.valueParameters
             .filter { parameter ->
                 val element = parameter.typeReference?.typeElement
                 val named = if (element is KtNullableType) element.innerType else element
-                parameter.hasValOrVar() && named != null && named !is KtFunctionType
+                parameter.hasValOrVar() &&
+                    parameter.name !in delegates &&
+                    named != null &&
+                    named !is KtFunctionType
             }
             .mapNotNull { parameter ->
                 analyze(parameter) {

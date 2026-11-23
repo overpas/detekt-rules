@@ -8,11 +8,11 @@ overpas-architecture:
     rootPackageDepth: 2
     areDataClassesIgnored: true
   ConstructedCollaborator:
-    active: true
+    active: false
     excludes: ['**/test/**', '**/*Test/**']
     excludedPackages: ['kotlin', 'kotlinx', 'java', 'javax', 'android', 'androidx']
   HardcodedUrl:
-    active: true
+    active: false
     excludes: ['**/test/**', '**/*Test/**', '**/*.gradle.kts']
     allowedPackageSegments: ['di']
     allowedUrlPrefixes: ['http://schemas.android.com/', 'http://www.w3.org/']

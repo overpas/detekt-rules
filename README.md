@@ -150,7 +150,7 @@ class Checkout(private val gateway: PaymentGateway)
 
 #### `ConstructedCollaborator`
 
-A class must not build a collaborator from its constructor parameters in a property initializer or in an init block. Inject the collaborator instead. Needs type resolution, so the plain `detekt` task skips it.
+A class must not build a collaborator from its constructor parameters in a property initializer or in an init block. Inject the collaborator instead. Inactive by default. Needs type resolution, so the plain `detekt` task skips it.
 
 The rule reports a property initializer, a property delegate or an `init` block with a constructor call that takes a constructor parameter of the class, once for each property or block. A call that also takes a local value or a lambda parameter passes, because it builds one value for each item. Data classes, value classes and the classes of the excluded packages pass. The default config excludes the test sources.
 
@@ -182,7 +182,7 @@ class Parts(names: List<String>, cost: Cost) {
 
 #### `HardcodedUrl`
 
-Production code must not hardcode an HTTP or HTTPS URL outside the DI packages. Supply the URL through DI, a build property or a resource.
+Production code must not hardcode an HTTP or HTTPS URL outside the DI packages. Supply the URL through DI, a build property or a resource. Inactive by default.
 
 The rule reports a string with `http://` or `https://`, in any case, in a file whose package has no allowed segment. A URL that starts with an allowed prefix, such as an XML namespace, passes in any package. Add the URLs that are fixed by a protocol, such as OAuth scopes or loopback redirects, to `allowedUrlPrefixes`. The default config excludes the test sources and the Gradle scripts.
 
@@ -1118,7 +1118,7 @@ dependencies {
 
 #### `CollaboratorNameMismatch`
 
-The name of a constructor property must contain the last word of the name of its type. `gateway: PaymentGateway` tells what the property is, `payments: PaymentGateway` does not. Needs type resolution, so the plain `detekt` task skips it.
+The name of a constructor property must contain the last word of the name of its type. `gateway: PaymentGateway` tells what the property is, `payments: PaymentGateway` does not. Inactive by default. Needs type resolution, so the plain `detekt` task skips it.
 
 The name does not have to end with the full type name, and the check ignores case. Constructor parameters without `val` or `var`, the delegates of a class delegation, such as `delegate` in `by delegate`, function types, type parameters and the types of the excluded packages pass. The default config excludes the test sources.
 
@@ -1145,7 +1145,7 @@ class Catalog(private val cachedPriceDb: PriceDb)
 
 #### `ConversionNameMismatch`
 
-The return type of a `toX` or an `asX` function must contain `X` in its name. `toInvoice(): Receipt` promises an invoice but gives a receipt.
+The return type of a `toX` or an `asX` function must contain `X` in its name. `toInvoice(): Receipt` promises an invoice but gives a receipt. Inactive by default.
 
 The rule checks the explicit return type only. The check ignores case, and the qualifiers and type arguments count, so `toStoreState(): CartStore.State` and `toPage(): Result<Page>` pass. A plural name is checked like its singular, so `toInvoices(): List<Invoice>` and `toCategories(): List<Category>` pass. A return type that is a type parameter of the function passes. The conversions of the ignored receiver types, such as `String.toTitleCase(): String`, pass.
 

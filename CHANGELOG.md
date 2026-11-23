@@ -3,6 +3,67 @@
 All notable changes are documented in this file. The project uses
 [Semantic Versioning](https://semver.org).
 
+## 0.10.0
+
+### Added rules
+
+- `overpas-architecture`: `ConcreteCollaborator` reports a constructor parameter whose type is a
+  class that implements a project interface, also through a superclass. The message names the
+  interfaces to use instead. A project interface is an interface in the sources under analysis,
+  or an interface whose package starts with the same `rootPackageDepth` (2) segments as the
+  package of the checked file. Data classes, value classes, enums and objects as parameter types
+  pass. `areDataClassesIgnored` (`true`) skips the constructors of data classes. The rule is
+  active by default, excludes the test sources and needs type resolution, so the plain `detekt`
+  task skips it. To turn it off, set `ConcreteCollaborator: active: false` in your config.
+- `overpas-architecture`: `ConstructedCollaborator` reports a property initializer, a property
+  delegate or an `init` block with a constructor call that takes a constructor parameter of the
+  class, once for each property or block. A call that also takes a local value or a lambda
+  parameter passes. Data classes, value classes and the classes of `excludedPackages` (`kotlin`,
+  `kotlinx`, `java`, `javax`, `android`, `androidx`, with subpackages) pass. The rule is inactive
+  by default, excludes the test sources and needs type resolution.
+- `overpas-architecture`: `HardcodedUrl` reports a string with `http://` or `https://`, in any
+  case, in a file whose package has none of the `allowedPackageSegments` (`di`). A URL that starts
+  with one of the `allowedUrlPrefixes` (`http://schemas.android.com/`, `http://www.w3.org/`)
+  passes in any package. The rule is inactive by default, excludes the test sources and the
+  Gradle scripts, and does not need type resolution.
+- `overpas-architecture`: `ProvidesInsteadOfInject` reports a DI provider whose body is one
+  constructor call of a project class, when each argument is a parameter of the provider. The
+  message proposes `@Inject` on the class, and `@Binds` when the provider returns a supertype. A
+  provider of a library class passes. `providerAnnotations` (`Provides`) marks a provider, and
+  `rootPackageDepth` (2) defines a project class as in `ConcreteCollaborator`. The rule is for
+  Dagger, Hilt, Metro, kotlin-inject and other frameworks with JSR-330 `@Inject` and Dagger-style
+  `@Provides` and `@Binds`. It is active by default and needs type resolution. To turn it off,
+  set `ProvidesInsteadOfInject: active: false` in your config.
+- `overpas-architecture`: `StoreTypeLeak` reports the nested `Intent`, `Action`, `Message`,
+  `State` and `Label` types of an MVIKotlin-style store when they are used too far from the store.
+  The rule finds them in imports and qualified names and reports each once in a file. The store
+  package and its `allowedSubpackages` (none) can use all the types. The component package, which
+  is the store package or its parent, can also use `componentTypes` (`Intent`, `State`, `Label`).
+  The `uiPackage` (`ui`) subpackage of the component package can also use `uiTypes` (`State`,
+  `Label`). `storeSuffix` (`Store`) and `storeTypes` select the checked types. The rule does not
+  resolve star imports. It is inactive by default, excludes the test sources and does not need
+  type resolution.
+- `overpas-style`: `CollaboratorNameMismatch` reports a constructor property whose name does not
+  contain the last word of its type name, such as `payments: PaymentGateway`. The check ignores
+  case. Parameters without `val` or `var`, class delegates, function types, type parameters and
+  the types of `excludedPackages` (`kotlin`, `kotlinx`, `java`, `javax`, `dagger`, with
+  subpackages) pass. `areDataClassesIgnored` (`true`) skips the constructors of data classes. The
+  rule is inactive by default, excludes the test sources and needs type resolution.
+- `overpas-style`: `ConversionNameMismatch` reports a `toX` or an `asX` function whose explicit
+  return type does not contain `X`, such as `toInvoice(): Receipt`. The check ignores case, and
+  qualifiers and type arguments count, so `toPage(): Result<Page>` passes. A plural name is
+  checked like its singular, and a type parameter as the return type passes. `ignoredSuffixes`
+  (`OrNull`, `OrThrow`, `OrDefault`, `OrElse`, `OrEmpty`) are removed from the name before the
+  check. The conversions of `ignoredReceiverTypes` (`String`, `Boolean`, `Byte`, `Short`, `Int`,
+  `Long`, `Float`, `Double`, `Char`) pass. The rule is inactive by default and does not need type
+  resolution.
+- `overpas-style`: `RepeatedLazyValue` reports a parameter or a property of the `Lazy` type whose
+  `value` is read more than once, as `x.value` or `this.x.value`. The rule counts the reads in the
+  class of a constructor parameter or a member property, in the function of a function parameter
+  and in the block of a local value. A nested declaration of the same name hides the value. The
+  rule has no options, is active by default and does not need type resolution. To turn it off,
+  set `RepeatedLazyValue: active: false` in your config.
+
 ## 0.9.0
 
 ### Added rules
